@@ -1,20 +1,31 @@
 from flask import request, jsonify
 from flask_restful import Resource
 
-from repositories import UserRepository
+from repositories.user import UserRepository
+from schemas.user import UserSchema
 
+user_schema = UserSchema()
 
 class User(Resource):
     def get(self, username: str):
         user = UserRepository.get(username)
         return user, 200
 
+class UserResource(Resource):
+    def get(self, id: str):
+        return user_schema.dump(UserRepository.get(id))
+
+    def put(self, id: str):
+        json = request.get_json(silent=True)
+        username: str = json['username']
+        email: str = json['email']
+        return user_schema.dump(UserRepository.update(int(id), username, email))
 
 class UserList(Resource):
     def post(self):
-        """
+        '''
         Create user
-        """
+        '''
         request_json = request.get_json(silent=True)
         username: str = request_json['username']
         avatar_url: str = request_json.get('avatar_url', '')
@@ -25,3 +36,12 @@ class UserList(Resource):
             response = jsonify(e.to_dict())
             response.status_code = e.status_code
             return response
+
+class CurrentUserResource(Resource):
+    def get(self):
+        user = UserRepository.get_current_user()
+        if user is None:
+            return {
+                'error': 'Not logged in'
+            }, 404
+        return user_schema.dump(user)

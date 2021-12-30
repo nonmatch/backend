@@ -1,12 +1,15 @@
 from utils import get_env_variable
 
-POSTGRES_URL = get_env_variable('POSTGRES_URL')
-POSTGRES_USER = get_env_variable('POSTGRES_USER')
-POSTGRES_PASSWORD = get_env_variable('POSTGRES_PASSWORD')
-POSTGRES_DB = get_env_variable('POSTGRES_DB')
+
 
 
 class Config(object):
+    # TODO where to correctly move this function calls?
+    POSTGRES_URL = get_env_variable('POSTGRES_URL')
+    POSTGRES_USER = get_env_variable('POSTGRES_USER')
+    POSTGRES_PASSWORD = get_env_variable('POSTGRES_PASSWORD')
+    POSTGRES_DB = get_env_variable('POSTGRES_DB')
+
     DEBUG = False
     TESTING = False
     # SQLAlchemy
@@ -22,6 +25,9 @@ class Config(object):
 
     # API settings
     API_PAGINATION_PER_PAGE = 10
+
+    SECRET_KEY=get_env_variable('SECRET_KEY')
+    FRONTEND_URL=get_env_variable('FRONTEND_URL')
 
 
 class DevelopmentConfig(Config):

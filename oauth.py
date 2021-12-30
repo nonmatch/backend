@@ -6,11 +6,11 @@ from flask_dance.contrib.github import github, make_github_blueprint
 from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
 from sqlalchemy.orm.exc import NoResultFound
 
-from app.models import db, OAuth, User
+from models import db, OAuth, User
 
 github_blueprint = make_github_blueprint(
-    client_id=os.getenv("GITHUB_ID"),
-    client_secret=os.getenv("GITHUB_SECRET"),
+    client_id=os.getenv('GITHUB_ID'),
+    client_secret=os.getenv('GITHUB_SECRET'),
     scope='public_repo',#,user:email'
     storage=SQLAlchemyStorage(
         OAuth,
@@ -18,21 +18,34 @@ github_blueprint = make_github_blueprint(
         user=current_user,
         user_required=False,
     ),
+    redirect_to='generate_token'
 )
 
 
 @oauth_authorized.connect_via(github_blueprint)
 def github_logged_in(blueprint, token):
-    info = github.get("/user")
+    info = github.get('/user')
     if info.ok:
         account_info = info.json()
-        username = account_info["login"]
+        print(account_info)
+        username = account_info['login']
 
         query = User.query.filter_by(username=username)
         try:
             user = query.one()
         except NoResultFound:
-            user = User(username=username)
+            avatar = account_info['avatar_url']
+            email = ''
+            res = github.get('/user/public_emails')
+            if res.ok:
+                json = res.json()
+                for entry in json:
+                    if entry['visibility'] == 'private':
+                        continue
+                    email = entry['email']
+                    break
+                print(json)
+            user = User(username=username,avatar=avatar,email=email)
             db.session.add(user)
             db.session.commit()
         login_user(user)

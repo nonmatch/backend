@@ -1,13 +1,14 @@
+from typing import Optional
 from sqlalchemy.exc import IntegrityError
 from exceptions import ResourceExists
-from models import User
-
+from models import User, db
+from flask_login import current_user
 
 class UserRepository:
 
     @staticmethod
     def create(username: str, avatar_url: str) -> dict:
-        """ Create user """
+        ''' Create user '''
         result: dict = {}
         try:
             user = User(username=username, avatar_url=avatar_url)
@@ -24,8 +25,29 @@ class UserRepository:
         return result
 
     @staticmethod
-    def get(username: str) -> dict:
-        """ Query a user by username """
+    def get(id: int) -> User:
+        return User.query.with_entities(User.id, User.username, User.avatar).filter_by(id=id).first_or_404()
+
+    @staticmethod
+    def update(id: int, username: str, email: str) -> dict:
+        if not current_user.is_authenticated or id != current_user.id:
+            raise Exception('Not allowed ' + str(current_user.id) + ' != ' + str(id))
+        try:
+            user = User.query.get(id)
+            if user is None:
+                raise Exception('User record not found')
+            user.username = username
+            user.email = email
+            db.session.commit()
+            return user
+        except IntegrityError:
+            User.rollback()
+            raise ResourceExists('user already exists')
+
+
+    @staticmethod
+    def get_by_name(username: str) -> dict:
+        ''' Query a user by username '''
         user: dict = {}
         user = User.query.filter_by(username=username).first_or_404()
         user = {
@@ -33,3 +55,9 @@ class UserRepository:
           'date_created': str(user.date_created),
         }
         return user
+
+    @staticmethod
+    def get_current_user() -> Optional[User]:
+        if not current_user.is_authenticated:
+            return None
+        return current_user
