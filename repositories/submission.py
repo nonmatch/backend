@@ -8,10 +8,10 @@ from exceptions import ResourceExists
 
 class SubmissionRepository:
     @staticmethod
-    def create(function: int, owner: int, code: str, score: int, is_equivalent: bool, parent: int) -> dict:
+    def create(function: int, owner: int, code: str, score: int, is_equivalent: bool, parent: int, compiled: str) -> dict:
         '''Create submission'''
         try:
-            if int(parent) == 0:
+            if parent is not None and int(parent) == 0:
                 parent = None
             submission = Submission(
                 function=function,
@@ -19,7 +19,8 @@ class SubmissionRepository:
                 code=code,
                 score=score,
                 is_equivalent=is_equivalent,
-                parent=parent
+                parent=parent,
+                compiled=compiled
             )
             db.session.add(submission)
             db.session.commit()
@@ -32,7 +33,7 @@ class SubmissionRepository:
     @staticmethod
     def get_for_function(function: int) -> List[Submission]:
         '''Get all submissions for a function'''
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner).filter_by(function=function).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score).all()
 
 
     @staticmethod

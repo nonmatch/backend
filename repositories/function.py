@@ -26,8 +26,8 @@ class FunctionRepository:
     @staticmethod
     def get_all() -> List[Function]:
         functions: list = []
-        functions = Function.query.options(defer(Function.asm)).all()
-        
+        functions = Function.query.filter_by(deleted=False).options(defer(Function.asm)).all()
+
         # Need to do this so the defer of code is not triggered.
         return [x.__dict__ for x in functions]
 

@@ -19,6 +19,7 @@ import os
 from . import db
 from flask_login import UserMixin, LoginManager
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
+from sqlalchemy.sql import func
 
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
@@ -28,6 +29,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(250), unique=True)
     avatar = db.Column(db.String(256))
     email = db.Column(db.String(256))
+    time_created = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    time_updated = db.Column(db.DateTime(timezone=True), onupdate=func.now())
 
 class OAuth(OAuthConsumerMixin, db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))

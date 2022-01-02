@@ -17,6 +17,7 @@ from resources.function import FunctionList, FunctionResource
 from resources.login import LoginResource, LogoutResource
 from resources.submission import FunctionSubmissions, SubmissionList, SubmissionResource
 from resources.user import CurrentUserResource, UserResource
+from tools.find_nonmatching import update_nonmatching_functions
 
 
 # Load .env file manually, so the POSTGRESQL variables are available for get_config
@@ -133,8 +134,8 @@ def create_user(name):
 @click.argument('file')
 @click.argument('size')
 @click.argument('asm')
-
 def create_function(name, file, size, asm):
+    # TODO move to FunctionRepository
     function = Function(name=name, file=file, size=size,asm=asm)
     db.session.add(function)
     db.session.commit()
@@ -144,7 +145,6 @@ def create_function(name, file, size, asm):
 @click.argument('owner')
 @click.argument('code')
 @click.argument('score')
-
 def create_function(function, owner, code, score):
     SubmissionRepository.create(function, owner, code, score, False, None)
 
@@ -152,8 +152,11 @@ def create_function(function, owner, code, score):
 @click.argument('name')
 @click.argument('email')
 @click.argument('avatar')
-
 def create_user(name, email, avatar):
     user = User(username=name,avatar=avatar,email=email)
     db.session.add(user)
     db.session.commit()
+
+@app.cli.command('update-nonmatch')
+def update_nonmatch():
+    update_nonmatching_functions()

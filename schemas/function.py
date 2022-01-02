@@ -7,4 +7,5 @@ class FunctionSchema(ma.SQLAlchemyAutoSchema):
         model = Function
         load_instance = True
         load_only = ('locked_by',)
+        exclude = ('deleted',)
         include_fk= True

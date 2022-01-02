@@ -18,7 +18,9 @@ github_blueprint = make_github_blueprint(
         user=current_user,
         user_required=False,
     ),
-    redirect_to='generate_token'
+    redirect_to='generate_token',
+    # TODO somehow manage to force this to respond on https?
+    authorized_url='/github/authorized'
 )
 
 
