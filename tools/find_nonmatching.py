@@ -277,7 +277,7 @@ def update_nonmatching_functions():
         # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
         score = calculate_score(asm, compiled_asm)
         SubmissionRepository.create(function=function_id, owner=REPO_USER, code=src, score=score, is_equivalent=False, parent=None, compiled=compiled)
-        break
+        #break
 
     funcs_in_repo = list(map(lambda x: x[1], nonmatch))
 
