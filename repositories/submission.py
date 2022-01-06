@@ -1,10 +1,12 @@
 from typing import List
 
 from sqlalchemy.orm import defer
+from sqlalchemy.sql.expression import desc
 from models.submission import Submission
 from models import db
 from sqlalchemy.exc import IntegrityError
 from exceptions import ResourceExists
+from repositories.function import FunctionRepository
 
 class SubmissionRepository:
     @staticmethod
@@ -33,7 +35,7 @@ class SubmissionRepository:
     @staticmethod
     def get_for_function(function: int) -> List[Submission]:
         '''Get all submissions for a function'''
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score, desc(Submission.time_created)).all()
 
 
     @staticmethod

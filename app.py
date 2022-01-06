@@ -12,6 +12,7 @@ from models.function import Function
 from models import db, login_manager
 from models.user import User, generate_auth_token
 from oauth import github_blueprint
+from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 from resources.function import FunctionList, FunctionResource
 from resources.login import LoginResource, LogoutResource
@@ -140,13 +141,13 @@ def create_function(name, file, size, asm):
     db.session.add(function)
     db.session.commit()
 
-@app.cli.command('create-submission')
-@click.argument('function')
-@click.argument('owner')
-@click.argument('code')
-@click.argument('score')
-def create_function(function, owner, code, score):
-    SubmissionRepository.create(function, owner, code, score, False, None)
+# @app.cli.command('create-submission')
+# @click.argument('function')
+# @click.argument('owner')
+# @click.argument('code')
+# @click.argument('score')
+# def create_function(function, owner, code, score):
+#     SubmissionRepository.create(function, owner, code, score, False, None)
 
 @app.cli.command('create-user')
 @click.argument('name')

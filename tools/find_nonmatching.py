@@ -148,6 +148,11 @@ def get_code(name: str, include_function: bool) -> Tuple[bool, str, str, str]:
     return (False, asm, src, signature)
 
 def calculate_score(a: str, b: str) -> int:
+    if False:
+        with open('a.txt', 'w') as file:
+            file.write(a)
+        with open('b.txt', 'w') as file:
+            file.write(b)
     plus = 0
     minus = 0
     for line in difflib.unified_diff(a.split('\n'), b.split('\n')):
@@ -156,6 +161,12 @@ def calculate_score(a: str, b: str) -> int:
 
     # -1 as there is a --- +++ at the beginning of the diff
     return max(minus, plus) - 1
+
+
+ignored_functions = [
+    'sub_080A2FD0', # DEMO_USA
+    'sub_080A30AC', # DEMO_USA
+]
 
 def update_nonmatching_functions():
     symbols = load_symbols_from_map(os.path.join(get_repo_location(), 'tmc.map'))
@@ -168,12 +179,14 @@ def update_nonmatching_functions():
         funcs[func.name] = func
 
     for (file, func) in nonmatch:
+        if func in ignored_functions:
+            continue
 
         (err, asm, src, signature) = get_code(func, True)
         if err:
             print(asm, file=sys.stderr)
+            sys.exit(1) # TODO add again
             continue
-            #sys.exit(1) # TODO add again
 
         create_function = True
 
@@ -195,37 +208,13 @@ def update_nonmatching_functions():
         size = 0
         if symbol is None:
             print(f'No symbol found for {func}, maybe static?')
+            sys.exit(1)
             continue
-            #sys.exit(1)
         else:
             size = symbol.length
 
 
-        function_id = 0
-        # TODO move to FunctionRepository
-        if create_function:
-            print(f'Creating {func}')
-            # Run pycat.py on the asm code
-            res = requests.post(PYCAT_URL, asm)
-            asm = res.text.rstrip()
 
-            function = Function(name=func, file=file, size=size, asm=asm)
-            db.session.add(function)
-            db.session.commit()
-            function_id = function.id
-        else:
-            function_id = funcs[func].id
-            asm = funcs[func].asm
-            # TODO no need to update?
-            #function = Function.query.get(funcs[func].id)
-            #function.size = size
-            #res = requests.post(PYCAT_URL, asm)
-            #asm = res.text.rstrip()
-            #function.asm = asm
-            #db.session.commit()
-            pass
-
-        # TODO is there a case where the asm could change?
 
 
         # Compile, so that we can calculate the score
@@ -274,8 +263,50 @@ def update_nonmatching_functions():
             print(compiled)
             sys.exit(1)
 
-        # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
-        score = calculate_score(asm, compiled_asm)
+
+
+
+
+        function_id = 0
+        # TODO move to FunctionRepository
+        if create_function:
+            print(f'Creating {func}')
+            # Run pycat.py on the asm code
+            res = requests.post(PYCAT_URL, asm)
+            asm = res.text.rstrip()
+
+            # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
+            score = calculate_score(asm, compiled_asm)
+
+            function = Function(name=func, file=file, size=size, asm=asm, best_score=score)
+            db.session.add(function)
+            db.session.commit()
+            function_id = function.id
+        else:
+            function_id = funcs[func].id
+            asm = funcs[func].asm
+            # TODO need to update best score possibly
+
+            # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
+            score = calculate_score(asm, compiled_asm)
+
+            # Change the best_score of the function if this one is better
+            if score < func.funcs[func]:
+                funcs[func].best_score = score
+            db.session.commit()
+
+
+            # TODO no need to update?
+            #function = Function.query.get(funcs[func].id)
+            #function.size = size
+            #res = requests.post(PYCAT_URL, asm)
+            #asm = res.text.rstrip()
+            #function.asm = asm
+            #db.session.commit()
+            pass
+
+        # TODO is there a case where the asm could change?
+
         SubmissionRepository.create(function=function_id, owner=REPO_USER, code=src, score=score, is_equivalent=False, parent=None, compiled=compiled)
         #break
 
