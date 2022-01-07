@@ -16,6 +16,8 @@ from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 from resources.function import FunctionList, FunctionResource
 from resources.login import LoginResource, LogoutResource
+from resources.match import MatchResource
+from resources.pr import PrResource
 from resources.submission import FunctionSubmissions, SubmissionList, SubmissionResource
 from resources.user import CurrentUserResource, UserResource
 from tools.find_nonmatching import update_nonmatching_functions
@@ -73,27 +75,6 @@ def login():
 
     return f'You are @{res.json()["login"]} on GitHub'
 
-
-@app.route('/create_pr')
-def create_pr():
-    if not github.authorized:
-        return redirect(url_for('github.login'))
-
-    res = github.post('/repos/octorock/test/pulls', json={
-        'title': 'Test',
-        'head': 'nonmatch:nonmatch-patch-1',
-        'base': 'main',
-        'body': 'This is a test',
-        'maintainer_can_modify': True,
-
-    })
-    data = res.json()
-    print(data)
-    if 'message' in data:
-        return {'error': data['message']}
-    return {'url': data['html_url']}
-    return 'ok'
-
 @app.route('/generate_token')
 def generate_token():
     '''After successful OAuth dance, generate the token that is send to the frontend, so the GitHub access token is not exposed'''
@@ -114,6 +95,8 @@ api.add_resource(CurrentUserResource, '/user')
 api.add_resource(LoginResource, '/oauth/login')
 api.add_resource(LogoutResource, '/oauth/logout')
 api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
+api.add_resource(MatchResource, '/matches')
+api.add_resource(PrResource, '/pr')
 
 if __name__ == '__main__':
     app.run(debug=True)

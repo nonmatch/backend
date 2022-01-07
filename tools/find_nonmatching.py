@@ -14,16 +14,14 @@ from sqlalchemy import desc
 from tools.symbols import load_symbols_from_map
 import difflib
 
-def get_repo_location() -> str:
-    return os.getenv('TMC_REPO')
-
+TMC_REPO = os.getenv('TMC_REPO')
 REPO_USER = os.getenv('REPO_USER')
 PYCAT_URL = os.getenv('PYCAT_URL')
 CEXPLORE_URL = os.getenv('CEXPLORE_URL')
 
 def collect_non_matching_funcs():
     result = []
-    src_folder = os.path.join(get_repo_location(), 'src')
+    src_folder = os.path.join(TMC_REPO, 'src')
     for root, dirs, files in os.walk(src_folder):
         for file in files:
             if file.endswith('.c'):
@@ -36,7 +34,7 @@ def collect_non_matching_funcs():
 
 def collect_asm_funcs():
     result = []
-    src_folder = os.path.join(get_repo_location(), 'src')
+    src_folder = os.path.join(TMC_REPO, 'src')
     for root, dirs, files in os.walk(src_folder):
         for file in files:
             if file.endswith('.c'):
@@ -52,7 +50,7 @@ def collect_asm_funcs():
 
 def find_inc_file(name: str) -> Optional[str]:
     filename = name + '.inc'
-    search_path = os.path.join(get_repo_location(), 'asm', 'non_matching')
+    search_path = os.path.join(TMC_REPO, 'asm', 'non_matching')
     for root, dirs, files in os.walk(search_path):
         if filename in files:
             return os.path.join(root, filename)
@@ -61,7 +59,7 @@ def find_inc_file(name: str) -> Optional[str]:
 
 def find_source_file(name: str) -> Optional[str]:
     # Get the source file from tmc.map
-    with open(os.path.join(get_repo_location(), 'tmc.map'), 'r') as f:
+    with open(os.path.join(TMC_REPO, 'tmc.map'), 'r') as f:
         current_file = None
         for line in f:
             if line.startswith(' .text'):
@@ -132,12 +130,12 @@ def get_code(name: str, include_function: bool) -> Tuple[bool, str, str, str]:
     src_file = find_source_file(name)
     if src_file is None:
         return (True, f'Source file for {name} not found in tmc.map.', '', '')
-    src_file = os.path.join(get_repo_location(), src_file)
+    src_file = os.path.join(TMC_REPO, src_file)
 
     if not os.path.isfile(src_file):
         return(True, f'{src_file} is not a file.', '', '')
 
-    inc_path = inc_file.replace(get_repo_location() + '/', '')
+    inc_path = inc_file.replace(TMC_REPO + '/', '')
 
     (src, signature) = extract_nonmatching_section(inc_path, src_file, include_function)
     if src is None:
@@ -160,7 +158,7 @@ def calculate_score(a: str, b: str) -> int:
         minus += 1 if line.startswith('-') else 0
 
     # -1 as there is a --- +++ at the beginning of the diff
-    return max(minus, plus) - 1
+    return max(0, max(minus, plus) - 1)
 
 
 ignored_functions = [
@@ -169,7 +167,7 @@ ignored_functions = [
 ]
 
 def update_nonmatching_functions():
-    symbols = load_symbols_from_map(os.path.join(get_repo_location(), 'tmc.map'))
+    symbols = load_symbols_from_map(os.path.join(TMC_REPO, 'tmc.map'))
     nonmatch = collect_non_matching_funcs()
 
     #print(nonmatch)
@@ -317,3 +315,99 @@ def update_nonmatching_functions():
             print(f'{func} is no longer NONMATCH, removing...')
             funcs[func].deleted = True
             db.session.commit()
+
+def store_code(name: str, includes: str, header: str, src: str, matching: bool) -> Tuple[bool, str]:
+    # Find the .inc file for the non matching function
+    inc_file = find_inc_file(name)
+    if inc_file is None:
+        return (True, f'No {name}.inc found in asm/non_matching folder.')
+
+    src_file = find_source_file(name)
+    if src_file is None:
+        return (True, f'Source file for {name} not found in tmc.map.')
+    src_file = os.path.join(TMC_REPO, src_file)
+
+    if not os.path.isfile(src_file):
+        return(True, f'{src_file} is not a file.')
+
+    inc_path = inc_file.replace(TMC_REPO + '/', '')
+
+    (headers, data) = read_file_split_headers(src_file)
+
+    # https://stackoverflow.com/a/23146126
+    def find_last_containing(lst, sought_elt):
+        for r_idx, elt in enumerate(reversed(lst)):
+            if sought_elt in elt:
+                return len(lst) - 1 - r_idx
+
+    # Insert includes at the correct place
+    if includes.strip() != '':
+        last_include_index = find_last_containing(headers, '#include')
+        headers.insert(last_include_index + 1, includes.strip() + '\n')
+
+    # Append headers
+    if header.strip() != '':
+        headers.append(header.strip() + '\n\n')
+
+    # Add NONMATCH macro to replacement string when not matching
+    if not matching:
+        src = re.sub(r'(.*?)\s*{', r'NONMATCH("' +
+                     inc_path + r'", \1) {', src, 1) + '\nEND_NONMATCH'
+
+    match = re.search(
+        r'NONMATCH\(\"'+re.escape(inc_path)+r'\", ?(.*?)\) ?{(.*?)END_NONMATCH', ''.join(data), re.MULTILINE | re.DOTALL)
+    if match:
+        data = re.sub(
+            r'NONMATCH\(\"'+re.escape(inc_path)+r'\", ?(.*?)\) ?{(.*?)END_NONMATCH', src, ''.join(data), flags=re.MULTILINE | re.DOTALL)
+    else:
+        match = re.search(
+            r'ASM_FUNC\(\"'+re.escape(inc_path)+r'\", ?(.*?)\)$', ''.join(data), re.MULTILINE | re.DOTALL)
+        if match:
+            data = re.sub(
+                r'ASM_FUNC\(\"'+re.escape(inc_path)+r'\", ?(.*?)\)$', src, ''.join(data), flags=re.MULTILINE | re.DOTALL)
+        else:
+            return (True, f'No NONMATCH or ASM_FUNC section found for {inc_path} in {src_file}.')
+
+    with open(src_file, 'w') as f:
+        f.write(''.join(headers))
+        f.write(data)
+
+
+    if matching:
+        # Remove the .inc file as its no longer neede
+        os.remove(inc_file)
+        
+
+    return (False, '')
+
+
+def split_code(code: str) -> Tuple[str, str, str]:
+    if '// end of existing headers' in code:
+        code = code.split('// end of existing headers')[1].strip()
+
+    includes = []
+    headers = []
+    data = []
+    lines = code.split('\n')
+    in_includes = True
+    in_headers = True
+    for line in lines:
+        if in_headers:
+            if '{' in line and not 'struct' in line and not 'union' in line and not 'enum' in line:
+                in_headers = False
+                data.append(line)
+            elif 'NONMATCH' in line or 'ASM_FUNC' in line:
+                in_headers = False
+                data.append(line)
+            else:
+                if in_includes:
+                    if line.strip() == '' or '#include' in line:
+                        includes.append(line)
+                    else:
+                        in_includes = False
+                        headers.append(line)
+                else:
+                    headers.append(line)
+        else:
+            data.append(line)
+    return ('\n'.join(includes).strip(),'\n'.join(headers).strip(), '\n'.join(data).strip())

@@ -85,6 +85,7 @@ class FunctionSubmissions(Resource):
 
             if score < func.best_score:
                 func.best_score = score
+            print(score)
             if score == 0:
                 func.is_matched = True
     

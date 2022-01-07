@@ -26,7 +26,16 @@ class FunctionRepository:
     @staticmethod
     def get_all() -> List[Function]:
         functions: list = []
-        functions = Function.query.filter_by(deleted=False).options(defer(Function.asm)).all()
+        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False).options(defer(Function.asm)).all()
+
+        # Need to do this so the defer of code is not triggered.
+        return [x.__dict__ for x in functions]
+
+    # TODO exclude submitted
+    @staticmethod
+    def get_all_matched() -> List[Function]:
+        functions: list = []
+        functions = Function.query.filter_by(deleted=False, is_matched=True, is_submitted=False).options(defer(Function.asm)).all()
 
         # Need to do this so the defer of code is not triggered.
         return [x.__dict__ for x in functions]

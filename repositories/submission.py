@@ -37,6 +37,11 @@ class SubmissionRepository:
         '''Get all submissions for a function'''
         return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score, desc(Submission.time_created)).all()
 
+    @staticmethod
+    def get_matched_for_function(function: int) -> List[Submission]:
+        '''Get all submissions for a function with a score of 0'''
+        return Submission.query.filter_by(score=0).with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score, desc(Submission.time_created)).all()
+
 
     @staticmethod
     def get(id: int) -> Submission:

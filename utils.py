@@ -20,6 +20,7 @@ def error_response(e: Exception):
     return response
 
 def error_message_response(message: str):
+    print(f'Error message: {message}')
     response = jsonify(message=message)
     response.status_code = 400
     return response
