@@ -26,7 +26,7 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(250), unique=True)
+    username = db.Column(db.String(256))
     avatar = db.Column(db.String(256))
     email = db.Column(db.String(256))
     time_created = db.Column(db.DateTime(timezone=True), server_default=func.now())

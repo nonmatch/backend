@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, redirect, render_template, url_for
+from flask import Flask, jsonify, redirect, render_template, url_for, request
 from flask_dance.contrib.github import github
 from flask_login import logout_user, login_required, current_user
 from flask_restful import Api
@@ -19,6 +19,7 @@ from resources.login import LoginResource, LogoutResource
 from resources.submission import FunctionSubmissions, SubmissionList, SubmissionResource
 from resources.user import CurrentUserResource, UserResource
 from tools.find_nonmatching import update_nonmatching_functions
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 # Load .env file manually, so the POSTGRESQL variables are available for get_config
@@ -27,7 +28,6 @@ from config import get_config
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./users.db'
 app.config.from_object(get_config(None))
 app.register_blueprint(github_blueprint, url_prefix='/login')
 
@@ -38,15 +38,19 @@ login_manager.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Fix so that https is still correctly identified when passing through ngrok proxy tunnel
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.route('/')
 def homepage():
-    print(current_user)
-    return render_template('index.html')
+    print(request.headers)
+    return redirect(app.config['FRONTEND_URL'])
+    # print(current_user)
+    # return render_template('index.html')
 
-
-
-
+@app.route('/test')
+def test():
+    return url_for("github.authorized", _external=True)
 
 @app.route('/ping')
 def ping():
@@ -69,11 +73,6 @@ def login():
 
     return f'You are @{res.json()["login"]} on GitHub'
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('homepage'))
 
 @app.route('/create_pr')
 def create_pr():

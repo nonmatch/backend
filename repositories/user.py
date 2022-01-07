@@ -61,3 +61,13 @@ class UserRepository:
         if not current_user.is_authenticated:
             return None
         return current_user
+
+    @staticmethod
+    def get_by_name_and_email(username: str, email: str) -> Optional[User]:
+        return User.query.filter_by(username=username, email=email).first()
+
+    @staticmethod
+    def create_anonymous(username: str, email: str) -> User:
+        user = User(username=username, email=email)
+        db.session.add(user)
+        db.session.commit()
