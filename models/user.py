@@ -1,28 +1,10 @@
-''' from . import db
-from .abc import BaseModel
-
-import datetime
-
-
-class User(db.Model, BaseModel):
-    username = db.Column(
-        db.String, primary_key=True,
-        unique=True, nullable=False)
-    avatar_url = db.Column(db.String, nullable=True)
-    date_created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
-    def __init__(self, username: str, avatar_url: str = ''):
-        self.username = username
-        self.avatar_url = avatar_url '''
-
-import os
 from . import db
-from flask_login import UserMixin, LoginManager
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
+from flask_login import UserMixin, LoginManager
+from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from sqlalchemy.sql import func
-
-from itsdangerous import (TimedJSONWebSignatureSerializer
-                          as Serializer, BadSignature, SignatureExpired)
+import logging
+import os
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,10 +33,10 @@ def verify_auth_token(token):
     try:
         data = s.loads(token)
     except SignatureExpired:
-        print('signature expired')
+        logging.warning('signature expired')
         return None    # valid token, but expired
     except BadSignature:
-        print('bad signature')
+        logging.warning('bad signature')
         return None    # invalid token
     user = User.query.get(data['id'])
     return user
@@ -62,7 +44,6 @@ def verify_auth_token(token):
 
 @login_manager.request_loader
 def load_user_from_request(request):
-    print(request)
     # first, try to login using the token url arg
     token = request.args.get('token')
     if token:
@@ -74,7 +55,7 @@ def load_user_from_request(request):
     token = request.headers.get('Authorization')
     if token:
         token = token.replace('Basic ', '', 1)
-        print(f'got token {token} via header')
+        #logging.debug(f'got token {token} via header')
         # try:
         #     token = base64.b64decode(token)
         # except TypeError:

@@ -1,4 +1,3 @@
-
 from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 
@@ -21,5 +20,4 @@ class MatchRepository:
                     'size': function['size']
                 })
 
-        print(matches)
         return matches

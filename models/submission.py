@@ -1,6 +1,6 @@
 from . import db
-from .user import User
 from .function import Function
+from .user import User
 from sqlalchemy.sql import func
 
 # TODO created timestamp?

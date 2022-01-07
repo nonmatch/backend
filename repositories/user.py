@@ -1,8 +1,8 @@
-from typing import Optional
-from sqlalchemy.exc import IntegrityError
 from exceptions import ResourceExists
-from models import User, db
 from flask_login import current_user
+from models import User, db
+from sqlalchemy.exc import IntegrityError
+from typing import Optional
 
 class UserRepository:
 

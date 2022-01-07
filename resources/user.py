@@ -1,10 +1,13 @@
 from flask import request, jsonify
+from flask_login import current_user
 from flask_restful import Resource
-
+from repositories.submission import SubmissionRepository
 from repositories.user import UserRepository
+from schemas.submission import SubmissionSchema
 from schemas.user import UserSchema
 
 user_schema = UserSchema()
+submissions_schema = SubmissionSchema(many=True)
 
 class User(Resource):
     def get(self, username: str):
@@ -45,3 +48,9 @@ class CurrentUserResource(Resource):
                 'error': 'Not logged in'
             }, 404
         return user_schema.dump(user)
+
+class DashboardResource(Resource):
+    def get(self):
+        if current_user is None or not current_user.is_authenticated:
+            return []
+        return submissions_schema.dump(SubmissionRepository.get_for_user(current_user.id))

@@ -1,23 +1,23 @@
+from flask import request, abort
 from flask_dance.contrib.github import github
+from flask_login import current_user
 from flask_restful import Resource
-from subprocess import check_call, check_output
+from models import db
 from models.function import Function
+from models.pr import Pr
 from models.user import User
 from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
-from models.pr import Pr
+from subprocess import check_call, check_output
 from tools.find_nonmatching import split_code, store_code
 from utils import error_message_response, error_response
+import logging
 import os
-from flask_login import current_user
-from flask import request, abort
-from models import db
 
 TMC_REPO = os.getenv('TMC_REPO')
 
 class PrResource(Resource):
     def get(self):
-        print(current_user.id)
         if current_user is None or not current_user.is_authenticated or current_user.id != int(os.getenv('ADMIN_USER')):
             abort(404)
         return 'ok'
@@ -73,7 +73,7 @@ class PrResource(Resource):
                         username = user.username
                         email = user.email
                     else:
-                        print(f'Could not find user {user}')
+                        logging.error(f'Could not find user {user}')
 
                 # Write the code to the file
                 (includes, header, src) = split_code(submission.code)
@@ -83,29 +83,26 @@ class PrResource(Resource):
 
                 check_call(['git', 'config', 'user.name', username], cwd=TMC_REPO)
                 check_call(['git', 'config', 'user.email', email], cwd=TMC_REPO)
-                
+
                 check_call(['git', 'add', '.'], cwd=TMC_REPO)
                 check_call(['git', 'commit', '-m', f'Match {function.name}', '--allow-empty'], cwd=TMC_REPO) # TODO remove allow empty?
-            
+
             check_call(['git', 'push', '-u', 'origin', branch, '-f'], cwd=TMC_REPO)
 
 
-            res = github.post('/repos/octorock/tmc/pulls', json={
+            res = github.post('/repos/zeldaret/tmc/pulls', json={
                 'title': data['title'],
                 'head': f'nonmatch:{branch}',
                 'base': 'master',
                 'body': data['text'],
                 # Only the nonmatch user can grant modifying, see https://github.com/backstrokeapp/server/issues/46#issuecomment-272597511
                 'maintainer_can_modify': False,
-
             })
+
             data = res.json()
-            print(data)
             if 'message' in data:
                 return error_message_response(data['message'])
 
-            
-            # TODO Mark functions as submitted
             for function in functions:
                 function.is_submitted = True
 

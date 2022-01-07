@@ -1,12 +1,11 @@
-import os
-
-from flask_login import current_user, login_user
 from flask_dance.consumer import oauth_authorized
-from flask_dance.contrib.github import github, make_github_blueprint
 from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
-from sqlalchemy.orm.exc import NoResultFound
-
+from flask_dance.contrib.github import github, make_github_blueprint
+from flask_login import current_user, login_user
 from models import db, OAuth, User
+from sqlalchemy.orm.exc import NoResultFound
+import logging
+import os
 
 github_blueprint = make_github_blueprint(
     client_id=os.getenv('GITHUB_ID'),
@@ -29,7 +28,7 @@ def github_logged_in(blueprint, token):
     info = github.get('/user')
     if info.ok:
         account_info = info.json()
-        print(account_info)
+        logging.debug(account_info)
         username = account_info['login']
 
         query = User.query.filter_by(username=username)
@@ -46,7 +45,7 @@ def github_logged_in(blueprint, token):
                         continue
                     email = entry['email']
                     break
-                print(json)
+                logging.debug(json)
             user = User(username=username,avatar=avatar,email=email)
             db.session.add(user)
             db.session.commit()

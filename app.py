@@ -19,7 +19,7 @@ from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
 from resources.submission import FunctionSubmissions, SubmissionList, SubmissionResource
-from resources.user import CurrentUserResource, UserResource
+from resources.user import CurrentUserResource, DashboardResource, UserResource
 from tools.find_nonmatching import update_nonmatching_functions
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -28,48 +28,41 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 load_dotenv()
 from config import get_config
 
+import logging
+logging.basicConfig(filename='error.log',level=logging.DEBUG)
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.config.from_object(get_config(None))
 app.register_blueprint(github_blueprint, url_prefix='/login')
 
 db.init_app(app)
-migrate = Migrate(app, db) 
+migrate = Migrate(app, db)
 login_manager.init_app(app)
 
 with app.app_context():
     db.create_all()
 
 # Fix so that https is still correctly identified when passing through ngrok proxy tunnel
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+#app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.route('/')
 def homepage():
-    print(request.headers)
     return redirect(app.config['FRONTEND_URL'])
-    # print(current_user)
-    # return render_template('index.html')
-
-@app.route('/test')
-def test():
-    return url_for("github.authorized", _external=True)
 
 @app.route('/ping')
 def ping():
     return jsonify(ping='pong')
-
 
 @app.route('/github')
 def login():
     if not github.authorized:
         return redirect(url_for('github.login'))
     res = github.get('/user/public_emails')
-    print(res.json())
-
+    logging.debug(res.json())
 
     res = github.get('/user')
     data = res.json()
-    print(data)
+    logging.debug(data)
     if 'message' in data:
         return {'error': data['message']}
 
@@ -83,35 +76,22 @@ def generate_token():
     token = generate_auth_token(current_user.id)
     return redirect(app.config['FRONTEND_URL']+'?token='+token.decode('ascii'))
 
-
 api = Api(app)
 api.add_resource(FunctionList, '/functions')
 api.add_resource(FunctionResource, '/functions/<function>')
 api.add_resource(SubmissionList, '/submissions')
 api.add_resource(SubmissionResource, '/submissions/<submission>')
-
 api.add_resource(UserResource, '/users/<id>')
 api.add_resource(CurrentUserResource, '/user')
+api.add_resource(DashboardResource, '/user/functions')
 api.add_resource(LoginResource, '/oauth/login')
 api.add_resource(LogoutResource, '/oauth/logout')
 api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
 api.add_resource(MatchResource, '/matches')
 api.add_resource(PrResource, '/pr')
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
-
-
 
 ##### CLI commands
-@app.cli.command('create-user')
-@click.argument('name')
-def create_user(name):
-    print('test ' + name)
-
 @app.cli.command('create-function')
 @click.argument('name')
 @click.argument('file')
@@ -122,14 +102,6 @@ def create_function(name, file, size, asm):
     function = Function(name=name, file=file, size=size,asm=asm)
     db.session.add(function)
     db.session.commit()
-
-# @app.cli.command('create-submission')
-# @click.argument('function')
-# @click.argument('owner')
-# @click.argument('code')
-# @click.argument('score')
-# def create_function(function, owner, code, score):
-#     SubmissionRepository.create(function, owner, code, score, False, None)
 
 @app.cli.command('create-user')
 @click.argument('name')
@@ -143,3 +115,7 @@ def create_user(name, email, avatar):
 @app.cli.command('update-nonmatch')
 def update_nonmatch():
     update_nonmatching_functions()
+
+if __name__ == '__main__':
+
+    app.run(debug=True)

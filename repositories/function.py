@@ -1,9 +1,8 @@
-from typing import List
-
-from sqlalchemy.orm import defer
+from exceptions import ResourceExists
 from models import Function, db
 from sqlalchemy.exc import IntegrityError
-from exceptions import ResourceExists
+from sqlalchemy.orm import defer
+from typing import List
 
 class FunctionRepository:
 
@@ -26,7 +25,7 @@ class FunctionRepository:
     @staticmethod
     def get_all() -> List[Function]:
         functions: list = []
-        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False).options(defer(Function.asm)).all()
+        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False).options(defer(Function.asm)).order_by(Function.id).all()
 
         # Need to do this so the defer of code is not triggered.
         return [x.__dict__ for x in functions]

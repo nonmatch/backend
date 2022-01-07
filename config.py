@@ -1,3 +1,4 @@
+import logging
 from utils import get_env_variable
 
 
@@ -49,7 +50,7 @@ def get_config(env=None):
             env = get_env_variable('ENV')
         except Exception:
             env = 'development'
-            print('env is not set, using env:', env)
+            logging.error('env is not set, using env:', env)
 
     if env == 'production':
         return ProductionConfig()

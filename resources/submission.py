@@ -1,17 +1,17 @@
+from flask import request, jsonify
+from flask_login import current_user
 from flask_migrate import current
 from flask_restful import Resource
 from models.user import User
 from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
-from flask import request, jsonify
-import os
 from repositories.user import UserRepository
 from schemas.submission import SubmissionSchema
-from flask_login import current_user
-import json
-
 from tools.find_nonmatching import calculate_score
 from utils import error_message_response, error_response
+import json
+import logging
+import os
 
 submissions_schema = SubmissionSchema(many=True)
 submission_schema = SubmissionSchema()
@@ -33,7 +33,7 @@ class SubmissionList(Resource):
             compiled: str = json['compiled']
             SubmissionRepository.create(function, owner, code, score, is_equivalent, parent, compiled)
         except Exception as e:
-            print(e)
+            logging.exception(e)
             response = jsonify(e.to_dict())
             response.status_code = e.status_code
             return response
@@ -52,7 +52,6 @@ class FunctionSubmissions(Resource):
         if data is None:
             return error_message_response('Invalid request')
 
-        print(data)
         try:
             owner = None
             if current_user is not None and current_user.is_authenticated:
@@ -85,7 +84,6 @@ class FunctionSubmissions(Resource):
 
             if score < func.best_score:
                 func.best_score = score
-            print(score)
             if score == 0:
                 func.is_matched = True
     

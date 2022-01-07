@@ -1,12 +1,11 @@
-from typing import List
-
-from sqlalchemy.orm import defer
-from sqlalchemy.sql.expression import desc
-from models.submission import Submission
-from models import db
-from sqlalchemy.exc import IntegrityError
 from exceptions import ResourceExists
-from repositories.function import FunctionRepository
+from models import db
+from models.function import Function
+from models.submission import Submission
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.expression import desc
+from typing import List
+import logging
 
 class SubmissionRepository:
     @staticmethod
@@ -28,7 +27,7 @@ class SubmissionRepository:
             db.session.commit()
             return {'id': submission.id}
         except IntegrityError as e:
-            print(e)
+            logging.exception(e)
             db.session.rollback()
             raise ResourceExists('Submission already exists')
 
@@ -41,6 +40,12 @@ class SubmissionRepository:
     def get_matched_for_function(function: int) -> List[Submission]:
         '''Get all submissions for a function with a score of 0'''
         return Submission.query.filter_by(score=0).with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score, desc(Submission.time_created)).all()
+
+    @staticmethod
+    def get_for_user(user: int) -> List[Submission]:
+        '''Get all non submitted submissions for a user'''
+        valid_functions = Function.query.with_entities(Function.id).filter_by(deleted=False, is_submitted=False)
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(owner=user).filter(Submission.function.in_(valid_functions)).order_by(desc(Submission.time_created)).all()
 
 
     @staticmethod

@@ -170,7 +170,6 @@ def update_nonmatching_functions():
     symbols = load_symbols_from_map(os.path.join(TMC_REPO, 'tmc.map'))
     nonmatch = collect_non_matching_funcs()
 
-    #print(nonmatch)
     functions = Function.query.filter_by(deleted=False).all()
     funcs = {}
     for func in functions:
@@ -289,7 +288,7 @@ def update_nonmatching_functions():
             score = calculate_score(asm, compiled_asm)
 
             # Change the best_score of the function if this one is better
-            if score < func.funcs[func]:
+            if score < funcs[func].best_score:
                 funcs[func].best_score = score
             db.session.commit()
 

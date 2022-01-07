@@ -1,6 +1,6 @@
-from flask.helpers import url_for
 from flask_login.utils import logout_user
 from flask_restful import Resource
+from flask.helpers import url_for
 
 
 class LoginResource(Resource):

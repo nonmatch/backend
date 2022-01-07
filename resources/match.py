@@ -1,6 +1,5 @@
 from flask_restful import Resource
 from repositories.match import MatchRepository
-
 from schemas.match import MatchSchema
 
 matches_schema = MatchSchema(many=True)
