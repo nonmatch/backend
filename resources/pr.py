@@ -34,6 +34,11 @@ class PrResource(Resource):
             if not github.authorized:
                 return error_message_response('Not correctly logged into GitHub')
 
+            if data['title'] == '':
+                return error_message_response('Need to enter a title')
+
+            if data['text'] == '':
+                return error_message_response('Need to enter a text')
 
             submissions = []
             functions = []
@@ -83,6 +88,9 @@ class PrResource(Resource):
 
                 check_call(['git', 'config', 'user.name', username], cwd=TMC_REPO)
                 check_call(['git', 'config', 'user.email', email], cwd=TMC_REPO)
+
+                # Format to avoid 
+                check_call(['../format.sh'], cwd=TMC_REPO)
 
                 check_call(['git', 'add', '.'], cwd=TMC_REPO)
                 check_call(['git', 'commit', '-m', f'Match {function.name}', '--allow-empty'], cwd=TMC_REPO) # TODO remove allow empty?
