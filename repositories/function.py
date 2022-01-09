@@ -2,7 +2,7 @@ from exceptions import ResourceExists
 from models import Function, db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import defer
-from typing import List
+from typing import List, Optional
 
 class FunctionRepository:
 
@@ -42,3 +42,7 @@ class FunctionRepository:
     @staticmethod
     def get(id: int) -> Function:
         return Function.query.get(id)
+
+    @staticmethod
+    def get_by_name(name: str) -> Optional[Function]:
+        return Function.query.filter_by(name=name).first()

@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 
 from dotenv import load_dotenv
 import click
+from cli import create_cli
 
 from models.function import Function
 from models import db, login_manager
@@ -90,31 +91,7 @@ api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
 api.add_resource(MatchResource, '/matches')
 api.add_resource(PrResource, '/pr')
 
-
-##### CLI commands
-@app.cli.command('create-function')
-@click.argument('name')
-@click.argument('file')
-@click.argument('size')
-@click.argument('asm')
-def create_function(name, file, size, asm):
-    # TODO move to FunctionRepository
-    function = Function(name=name, file=file, size=size,asm=asm)
-    db.session.add(function)
-    db.session.commit()
-
-@app.cli.command('create-user')
-@click.argument('name')
-@click.argument('email')
-@click.argument('avatar')
-def create_user(name, email, avatar):
-    user = User(username=name,avatar=avatar,email=email)
-    db.session.add(user)
-    db.session.commit()
-
-@app.cli.command('update-nonmatch')
-def update_nonmatch():
-    update_nonmatching_functions()
+create_cli(app)
 
 if __name__ == '__main__':
 
