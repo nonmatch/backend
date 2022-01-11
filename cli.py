@@ -51,3 +51,7 @@ def create_cli(app):
         function.asm = asm
         db.session.commit()
         print('done')
+
+
+# Find functions with error in asm
+# nonmatch=# SELECT id from function where asm like '%error%';

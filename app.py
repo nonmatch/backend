@@ -6,14 +6,12 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from dotenv import load_dotenv
-import click
 from cli import create_cli
 
 from models.function import Function
 from models import db, login_manager
 from models.user import User, generate_auth_token
 from oauth import github_blueprint
-from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 from resources.function import FunctionList, FunctionResource
 from resources.login import LoginResource, LogoutResource

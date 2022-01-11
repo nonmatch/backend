@@ -15,6 +15,7 @@ import logging
 import os
 
 TMC_REPO = os.getenv('TMC_REPO')
+PR_URL = os.getenv('PR_URL')
 
 class PrResource(Resource):
     def get(self):
@@ -36,9 +37,6 @@ class PrResource(Resource):
 
             if data['title'] == '':
                 return error_message_response('Need to enter a title')
-
-            if data['text'] == '':
-                return error_message_response('Need to enter a text')
 
             submissions = []
             functions = []
@@ -89,7 +87,7 @@ class PrResource(Resource):
                 check_call(['git', 'config', 'user.name', username], cwd=TMC_REPO)
                 check_call(['git', 'config', 'user.email', email], cwd=TMC_REPO)
 
-                # Format to avoid 
+                # Format to avoid
                 check_call(['../format.sh'], cwd=TMC_REPO)
 
                 check_call(['git', 'add', '.'], cwd=TMC_REPO)
@@ -98,17 +96,21 @@ class PrResource(Resource):
             check_call(['git', 'push', '-u', 'origin', branch, '-f'], cwd=TMC_REPO)
 
 
-            res = github.post('/repos/zeldaret/tmc/pulls', json={
+            arguments = {
                 'title': data['title'],
                 'head': f'nonmatch:{branch}',
                 'base': 'master',
-                'body': data['text'],
                 # Only the nonmatch user can grant modifying, see https://github.com/backstrokeapp/server/issues/46#issuecomment-272597511
                 'maintainer_can_modify': False,
-            })
+            }
+
+            if 'text' in data and data['text'] != '':
+                arguments['body'] = data['text']
+            res = github.post(PR_URL, json=arguments)
 
             data = res.json()
             if 'message' in data:
+                logging.error(data)
                 return error_message_response(data['message'])
 
             for function in functions:
