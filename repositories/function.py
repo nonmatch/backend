@@ -22,6 +22,9 @@ class FunctionRepository:
             raise ResourceExists('Function already exists')
         return result
 
+    # TODO also exclude fields like deleted, is_submitted and time_changed?
+    # TODO Rename deleted to is_deleted
+
     @staticmethod
     def get_all() -> List[Function]:
         functions: list = []
@@ -30,7 +33,6 @@ class FunctionRepository:
         # Need to do this so the defer of code is not triggered.
         return [x.__dict__ for x in functions]
 
-    # TODO exclude submitted
     @staticmethod
     def get_all_matched() -> List[Function]:
         functions: list = []

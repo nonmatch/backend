@@ -7,7 +7,6 @@ function_schema = FunctionSchema()
 
 class FunctionList(Resource):
     def get(self):
-        # TODO do not send asm field
         functions = FunctionRepository.get_all()
         return functions_schema.dump(functions), 200
 

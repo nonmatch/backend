@@ -182,7 +182,7 @@ def update_nonmatching_functions():
         (err, asm, src, signature) = get_code(func, True)
         if err:
             print(asm, file=sys.stderr)
-            sys.exit(1) # TODO add again
+            sys.exit(1)
             continue
 
         create_function = True
@@ -194,13 +194,13 @@ def update_nonmatching_functions():
 
             submission = Submission.query.filter_by(function=funcs[func].id, owner=REPO_USER).order_by(desc(Submission.time_created)).limit(1).first()
             if submission is not None and submission.code == src:
-                print(f'{func} code did not change, ignoring')
+                # print(f'{func} code did not change, ignoring')
                 continue
             create_function = False
             print(f'{func} code did change')
             # Only update the submission
 
-        # TODO calculate size on server
+        # Calculate the size from the symbol
         symbol = symbols.find_symbol_by_name(func)
         size = 0
         if symbol is None:
@@ -261,11 +261,7 @@ def update_nonmatching_functions():
             sys.exit(1)
 
 
-
-
-
         function_id = 0
-        # TODO move to FunctionRepository
         if create_function:
             print(f'Creating {func}')
             # Run pycat.py on the asm code
@@ -275,6 +271,7 @@ def update_nonmatching_functions():
             # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
             score = calculate_score(asm, compiled_asm)
 
+            # TODO move to FunctionRepository
             function = Function(name=func, file=file, size=size, asm=asm, best_score=score)
             db.session.add(function)
             db.session.commit()
@@ -292,20 +289,7 @@ def update_nonmatching_functions():
                 funcs[func].best_score = score
             db.session.commit()
 
-
-            # TODO no need to update?
-            #function = Function.query.get(funcs[func].id)
-            #function.size = size
-            #res = requests.post(PYCAT_URL, asm)
-            #asm = res.text.rstrip()
-            #function.asm = asm
-            #db.session.commit()
-            pass
-
-        # TODO is there a case where the asm could change?
-
         SubmissionRepository.create(function=function_id, owner=REPO_USER, code=src, score=score, is_equivalent=False, parent=None, compiled=compiled)
-        #break
 
     funcs_in_repo = list(map(lambda x: x[1], nonmatch))
 

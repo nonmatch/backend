@@ -3,7 +3,6 @@ from .function import Function
 from .user import User
 from sqlalchemy.sql import func
 
-# TODO created timestamp?
 class Submission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.Text)

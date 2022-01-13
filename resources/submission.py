@@ -11,14 +11,11 @@ from tools.find_nonmatching import calculate_score
 from utils import error_message_response, error_response
 import json
 import logging
-import os
 
 submissions_schema = SubmissionSchema(many=True)
 submission_schema = SubmissionSchema()
 
 class SubmissionList(Resource):
-    def get(self):
-        return 'TODO', 404
 
     def post(self):
         '''Create a new submission'''
