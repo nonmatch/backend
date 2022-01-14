@@ -50,4 +50,4 @@ class SubmissionRepository:
 
     @staticmethod
     def get(id: int) -> Submission:
-        return Submission.query.get(id)
+        return Submission.query.get_or_404(id, 'Submission not found.')

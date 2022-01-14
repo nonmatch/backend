@@ -135,8 +135,8 @@ def get_code(name: str, include_function: bool) -> Tuple[bool, str, str, str]:
     if not os.path.isfile(src_file):
         return(True, f'{src_file} is not a file.', '', '')
 
-    inc_path = inc_file.replace(TMC_REPO + '/', '')
-
+    inc_path = inc_file.replace('\\', '/')
+    inc_path = inc_path.replace(TMC_REPO + '/', '')
     (src, signature) = extract_nonmatching_section(inc_path, src_file, include_function)
     if src is None:
         return(True, f'No NONMATCH or ASM_FUNC section found for {inc_path} in {src_file}.', '', '')

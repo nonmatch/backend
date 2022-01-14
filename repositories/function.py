@@ -43,7 +43,7 @@ class FunctionRepository:
 
     @staticmethod
     def get(id: int) -> Function:
-        return Function.query.get(id)
+        return Function.query.get_or_404(id, 'Function not found.')
 
     @staticmethod
     def get_by_name(name: str) -> Optional[Function]:
