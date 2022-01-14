@@ -32,6 +32,7 @@ def create_cli(app):
     @app.cli.command('update-nonmatch')
     def update_nonmatch():
         update_nonmatching_functions()
+        print('done')
 
     @app.cli.command('update-asm')
     @click.argument('func')
