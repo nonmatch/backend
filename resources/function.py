@@ -10,6 +10,12 @@ class FunctionList(Resource):
         functions = FunctionRepository.get_all()
         return functions_schema.dump(functions), 200
 
+
+class AsmFunctionList(Resource):
+    def get(self):
+        functions = FunctionRepository.get_all_asm()
+        return functions_schema.dump(functions), 200
+
 class FunctionResource(Resource):
     def get(self, function):
         return function_schema.dump(FunctionRepository.get(function))

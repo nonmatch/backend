@@ -11,7 +11,7 @@ from models.submission import Submission
 from repositories.submission import SubmissionRepository
 from sqlalchemy import desc
 
-from tools.symbols import load_symbols_from_map
+from tools.symbols import SymbolList, load_symbols_from_map
 import difflib
 
 TMC_REPO = os.getenv("TMC_REPO")
@@ -71,16 +71,21 @@ def find_inc_file(name: str) -> Optional[str]:
     return None
 
 
-def find_source_file(name: str) -> Optional[str]:
-    # Get the source file from tmc.map
-    with open(os.path.join(TMC_REPO, "tmc.map"), "r") as f:
-        current_file = None
-        for line in f:
-            if line.startswith(" .text"):
-                current_file = line.split()[3]
-            elif line.strip().endswith(" " + name):
-                return current_file[0:-2] + ".c"
+def find_source_file(name: str, symbols: SymbolList) -> Optional[str]:
+    # # Get the source file from tmc.map
+    # with open(os.path.join(TMC_REPO, "tmc.map"), "r") as f:
+    #     current_file = None
+    #     for line in f:
+    #         if line.startswith(" .text"):
+    #             current_file = line.split()[3]
+    #         elif line.strip().endswith(" " + name):
+    #             return current_file[0:-2] + ".c"
+    #     return None
+    symbol = symbols.find_symbol_by_name(name)
+    if symbol is None:
         return None
+    else:
+        return symbol.file
 
 
 def read_file_split_headers(src_file: str) -> Tuple[List[str], List[str]]:
@@ -156,13 +161,13 @@ def prepare_asm(inc_file: str, name: str) -> str:
     return "thumb_func_start " + name + "\n" + name + ":\n" + ("".join(lines))
 
 
-def get_code(name: str, include_function: bool) -> Tuple[bool, str, str, str]:
+def get_code(name: str, include_function: bool, symbols: SymbolList) -> Tuple[bool, str, str, str]:
     # Find the .inc file for the non matching function
     inc_file = find_inc_file(name)
     if inc_file is None:
         return (True, f"No {name}.inc found in asm/non_matching folder.", "", "")
 
-    src_file = find_source_file(name)
+    src_file = find_source_file(name, symbols)
     if src_file is None:
         return (True, f"Source file for {name} not found in tmc.map.", "", "")
     src_file = os.path.join(TMC_REPO, src_file)
@@ -230,7 +235,7 @@ def update_nonmatching_functions():
         if func in ignored_functions:
             continue
 
-        (err, asm, src, signature) = get_code(func, True)
+        (err, asm, src, signature) = get_code(func, True, symbols)
         if err:
             print(asm, file=sys.stderr)
             sys.exit(1)

@@ -28,7 +28,15 @@ class FunctionRepository:
     @staticmethod
     def get_all() -> List[Function]:
         functions: list = []
-        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False).options(defer(Function.asm)).order_by(Function.id).all()
+        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False,is_asm_func=False).options(defer(Function.asm)).order_by(Function.id).all()
+
+        # Need to do this so the defer of code is not triggered.
+        return [x.__dict__ for x in functions]
+
+    @staticmethod
+    def get_all_asm() -> List[Function]:
+        functions: list = []
+        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False,is_asm_func=True).options(defer(Function.asm)).order_by(Function.id).all()
 
         # Need to do this so the defer of code is not triggered.
         return [x.__dict__ for x in functions]
@@ -43,7 +51,7 @@ class FunctionRepository:
 
     @staticmethod
     def get(id: int) -> Function:
-        return Function.query.get_or_404(id, 'Function not found.')
+        return Function.query.get(id)
 
     @staticmethod
     def get_by_name(name: str) -> Optional[Function]:

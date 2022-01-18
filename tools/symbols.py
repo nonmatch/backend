@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Optional
 from sortedcontainers import SortedKeyList
 from sortedcontainers.sortedlist import SortedList
-from os import path
+from subprocess import check_output
+import os
 
 ROM_OFFSET=0x08000000
 @dataclass
@@ -37,37 +38,47 @@ class SymbolList:
         return None
 
 
-def load_symbols_from_map(path: str) -> SymbolList:
+def load_symbols_from_map(path: str) -> SymbolList: # TODO rename to load_symbols_from_elf?
     symbols = SortedKeyList([], key=lambda x:x.address)
-    with open(path, 'r') as map_file:
 
-        # ignore header
-        line = map_file.readline()
-        while not line.startswith('rom'):
-            line = map_file.readline()
-        line = map_file.readline()
-        while not line.startswith('rom'): # The second line starting with 'rom' is the one we need
-            line = map_file.readline()
+    output = check_output(['readelf', '--debug-dump=info', os.path.join(os.getenv('TMC_REPO'),'tmc.elf')], universal_newlines=True)
 
-        # Parse declarations
+    IGNORE = 0
+    SUBPROGRAM = 1
+    COMPILE_UNIT = 2
+    VARIABLE = 3
+    tag = IGNORE
+    current_file = 'UNKNOWN'
+    current_name = ''
+    prev_symbol = None
 
-        prev_symbol = None
-        current_file = 'UNKNOWN'
-        for line in map_file:
-            if line.startswith(' .'):
-                # ignore this definition of filename
-                continue
-            elif line.startswith('  '):
-                parts = line.split()
-                if len(parts) == 2 and parts[1] !='': # it is actually a symbol
-                    addr = int(parts[0],16)-ROM_OFFSET
-                    if prev_symbol is not None:
-                        prev_symbol.length = addr-prev_symbol.address
-                    symbol = Symbol(addr, parts[1], current_file)
-                    symbols.add(symbol)
-                    prev_symbol = symbol
+    for line in output.split('\n'):
+        if 'Abbrev Number' in line:
+            if 'DW_TAG_subprogram' in line:
+                tag = SUBPROGRAM
+            elif 'DW_TAG_compile_unit' in line:
+                tag = COMPILE_UNIT
+            # TODO is the address of the variables stored in the dwarf info?
+            # elif 'DW_TAG_variable' in line:
+            #     tag = VARIABLE
+            else:
+                tag = IGNORE
+        if tag == IGNORE:
+            continue
+        elif tag == SUBPROGRAM:
+            if 'DW_AT_name' in line:
+                current_name = line.split(':')[1].strip()
+            elif 'DW_AT_low_pc' in line:
+                addr = int(line.split(':')[1].strip(),16)-ROM_OFFSET
+                if prev_symbol is not None:
+                    prev_symbol.length = addr-prev_symbol.address
+                if current_name == 'sub_0804E150':
+                    print(f'{current_file}, {current_name}, {addr}')
+                symbol = Symbol(addr, current_name, current_file)
+                symbols.add(symbol)
+                prev_symbol = symbol
+        elif tag == COMPILE_UNIT:
+            if 'DW_AT_name' in line:
+                current_file = line.split(':')[1].strip()
 
-            elif not line.startswith(' *'):
-                # this defines the name
-                current_file = line.split('(')[0].strip()
     return SymbolList(symbols)

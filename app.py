@@ -13,7 +13,7 @@ from models import db, login_manager
 from models.user import User, generate_auth_token
 from oauth import github_blueprint
 from repositories.submission import SubmissionRepository
-from resources.function import FunctionList, FunctionResource
+from resources.function import AsmFunctionList, FunctionList, FunctionResource
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
@@ -83,6 +83,7 @@ def generate_token():
 
 api = Api(app)
 api.add_resource(FunctionList, "/functions")
+api.add_resource(AsmFunctionList, "/asm_functions")
 api.add_resource(FunctionResource, "/functions/<function>")
 api.add_resource(SubmissionList, "/submissions")
 api.add_resource(SubmissionResource, "/submissions/<submission>")
