@@ -1,8 +1,22 @@
 from exceptions import ResourceExists
-from models import Function, db
+from models import db
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import defer
 from typing import List, Optional
+from models.function import Function
+
+public_fields = (
+    Function.id,
+    Function.name,
+    Function.file,
+    Function.size,
+    Function.best_score,
+    Function.time_created)
+
+public_fields_single = (
+    *public_fields,
+    Function.asm
+)
+
 
 class FunctionRepository:
 
@@ -27,32 +41,32 @@ class FunctionRepository:
 
     @staticmethod
     def get_all() -> List[Function]:
-        functions: list = []
-        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False,is_asm_func=False).options(defer(Function.asm)).order_by(Function.id).all()
-
-        # Need to do this so the defer of code is not triggered.
-        return [x.__dict__ for x in functions]
+        return Function.query.filter_by(
+            deleted=False, is_matched=False, is_submitted=False, is_asm_func=False
+        ).with_entities(
+            *public_fields
+        ).order_by(Function.id).all()
 
     @staticmethod
     def get_all_asm() -> List[Function]:
-        functions: list = []
-        functions = Function.query.filter_by(deleted=False, is_matched=False, is_submitted=False,is_asm_func=True).options(defer(Function.asm)).order_by(Function.id).all()
-
-        # Need to do this so the defer of code is not triggered.
-        return [x.__dict__ for x in functions]
+        return Function.query.filter_by(
+            deleted=False, is_matched=False, is_submitted=False, is_asm_func=True
+        ).with_entities(
+            *public_fields
+        ).order_by(Function.id).all()
 
     @staticmethod
     def get_all_matched() -> List[Function]:
-        functions: list = []
-        functions = Function.query.filter_by(deleted=False, is_matched=True, is_submitted=False).options(defer(Function.asm)).all()
-
-        # Need to do this so the defer of code is not triggered.
-        return [x.__dict__ for x in functions]
+        return Function.query.filter_by(
+            deleted=False, is_matched=True, is_submitted=False
+        ).with_entities(
+            *public_fields
+        ).order_by(Function.id).all()
 
     @staticmethod
     def get(id: int) -> Function:
-        return Function.query.get(id)
+        return Function.query.with_entities(*public_fields_single).filter_by(id=id).first_or_404()
 
     @staticmethod
     def get_by_name(name: str) -> Optional[Function]:
-        return Function.query.filter_by(name=name).first()
+        return Function.query.with_entities(*public_fields_single).filter_by(name=name).first()

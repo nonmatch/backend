@@ -8,4 +8,4 @@ class FunctionSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         load_only = ('locked_by',)
         exclude = ('deleted',)
-        include_fk= True
+        include_fk = True

@@ -6,8 +6,9 @@ from flask.helpers import url_for
 class LoginResource(Resource):
     def get(self):
         return {
-             'redirect': url_for('github.login',_external=True)
-         }
+            'redirect': url_for('github.login', _external=True)
+        }
+
 
 class LogoutResource(Resource):
     def post(self):

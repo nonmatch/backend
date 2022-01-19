@@ -2,7 +2,8 @@ from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
 from flask_dance.contrib.github import github, make_github_blueprint
 from flask_login import current_user, login_user
-from models import db, OAuth, User
+from models import db
+from models.user import OAuth, User
 from sqlalchemy.orm.exc import NoResultFound
 import logging
 import os

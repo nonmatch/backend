@@ -7,6 +7,7 @@ from sqlalchemy.sql.expression import desc
 from typing import List
 import logging
 
+
 class SubmissionRepository:
     @staticmethod
     def create(function: int, owner: int, code: str, score: int, is_equivalent: bool, parent: int, compiled: str) -> dict:
@@ -44,9 +45,9 @@ class SubmissionRepository:
     @staticmethod
     def get_for_user(user: int) -> List[Submission]:
         '''Get all non submitted submissions for a user'''
-        valid_functions = Function.query.with_entities(Function.id).filter_by(deleted=False, is_submitted=False)
+        valid_functions = Function.query.with_entities(
+            Function.id).filter_by(deleted=False, is_submitted=False)
         return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(owner=user).filter(Submission.function.in_(valid_functions)).order_by(desc(Submission.time_created)).all()
-
 
     @staticmethod
     def get(id: int) -> Submission:

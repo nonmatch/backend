@@ -5,6 +5,7 @@ from schemas.function import FunctionSchema
 functions_schema = FunctionSchema(many=True)
 function_schema = FunctionSchema()
 
+
 class FunctionList(Resource):
     def get(self):
         functions = FunctionRepository.get_all()
@@ -15,6 +16,7 @@ class AsmFunctionList(Resource):
     def get(self):
         functions = FunctionRepository.get_all_asm()
         return functions_schema.dump(functions), 200
+
 
 class FunctionResource(Resource):
     def get(self, function):

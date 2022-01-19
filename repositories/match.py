@@ -9,7 +9,8 @@ class MatchRepository:
         functions = FunctionRepository.get_all_matched()
 
         for function in functions:
-            submissions = SubmissionRepository.get_matched_for_function(function['id'])
+            submissions = SubmissionRepository.get_matched_for_function(
+                function['id'])
             for submission in submissions:
                 matches.append({
                     'name': function['name'],

@@ -4,6 +4,7 @@ from schemas.match import MatchSchema
 
 matches_schema = MatchSchema(many=True)
 
+
 class MatchResource(Resource):
     def get(self):
         '''Returns all matching submissions'''

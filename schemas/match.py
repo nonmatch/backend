@@ -1,5 +1,7 @@
 from ma import ma
 from marshmallow import fields
+
+
 class MatchSchema(ma.Schema):
     name = fields.Str()
     function = fields.Int()

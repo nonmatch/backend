@@ -17,6 +17,7 @@ import os
 TMC_REPO = os.getenv('TMC_REPO')
 PR_URL = os.getenv('PR_URL')
 
+
 class PrResource(Resource):
     def get(self):
         if current_user is None or not current_user.is_authenticated or current_user.id != int(os.getenv('ADMIN_USER')):
@@ -55,7 +56,8 @@ class PrResource(Resource):
                 if function.is_submitted:
                     return error_message_response(f'A Pull Request for function {function.name} was already submitted')
 
-            pr = Pr(title=data['title'], text=data['text'], creator=current_user.id, functions=', '.join(map(lambda x:str(x), data['selected'])))
+            pr = Pr(title=data['title'], text=data['text'], creator=current_user.id,
+                    functions=', '.join(map(lambda x: str(x), data['selected'])))
             db.session.add(pr)
             db.session.commit()
 
@@ -70,8 +72,9 @@ class PrResource(Resource):
                 function = functions[i]
                 username = 'anonymous'
                 email = ''
-                if submission.owner is not None and submission.owner != 0 :
-                    user = User.query.with_entities(User.username, User.email).filter_by(id=submission.owner).first_or_404()
+                if submission.owner is not None and submission.owner != 0:
+                    user = User.query.with_entities(User.username, User.email).filter_by(
+                        id=submission.owner).first_or_404()
                     if user is not None:
                         username = user.username
                         email = user.email
@@ -80,21 +83,26 @@ class PrResource(Resource):
 
                 # Write the code to the file
                 (includes, header, src) = split_code(submission.code)
-                (err, msg) = store_code(function.name, includes, header, src, submission.score == 0)
+                (err, msg) = store_code(function.name,
+                                        includes, header, src, submission.score == 0)
                 if err:
                     return error_message_response(msg)
 
-                check_call(['git', 'config', 'user.name', username], cwd=TMC_REPO)
-                check_call(['git', 'config', 'user.email', email], cwd=TMC_REPO)
+                check_call(['git', 'config', 'user.name',
+                           username], cwd=TMC_REPO)
+                check_call(
+                    ['git', 'config', 'user.email', email], cwd=TMC_REPO)
 
                 # Format to avoid
                 check_call(['../format.sh'], cwd=TMC_REPO)
 
                 check_call(['git', 'add', '.'], cwd=TMC_REPO)
-                check_call(['git', 'commit', '-m', f'Match {function.name}', '--allow-empty'], cwd=TMC_REPO) # TODO remove allow empty?
+                # TODO remove allow empty?
+                check_call(
+                    ['git', 'commit', '-m', f'Match {function.name}', '--allow-empty'], cwd=TMC_REPO)
 
-            check_call(['git', 'push', '-u', 'origin', branch, '-f'], cwd=TMC_REPO)
-
+            check_call(['git', 'push', '-u', 'origin',
+                       branch, '-f'], cwd=TMC_REPO)
 
             arguments = {
                 'title': data['title'],
@@ -117,7 +125,7 @@ class PrResource(Resource):
                 function.is_submitted = True
 
             pr.url = data['html_url']
-            pr.functions = ', '.join(map(lambda f:f.name, functions))
+            pr.functions = ', '.join(map(lambda f: f.name, functions))
             db.session.commit()
 
             return {'url': data['html_url']}

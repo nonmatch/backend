@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, redirect, render_template, url_for, request
+from flask import Flask, jsonify, redirect, url_for, request
 from flask_dance.contrib.github import github
-from flask_login import logout_user, login_required, current_user
+from flask_login import current_user
 from flask_restful import Api
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -8,19 +8,15 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 from cli import create_cli
 
-from models.function import Function
-from models import db, login_manager
-from models.user import User, generate_auth_token
+from models import db
+from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
-from repositories.submission import SubmissionRepository
 from resources.function import AsmFunctionList, FunctionList, FunctionResource
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
 from resources.submission import FunctionSubmissions, SubmissionList, SubmissionResource
 from resources.user import CurrentUserResource, DashboardResource, UserResource
-from tools.find_nonmatching import update_nonmatching_functions
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 # Load .env file manually, so the POSTGRESQL variables are available for get_config

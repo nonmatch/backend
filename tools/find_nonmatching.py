@@ -268,6 +268,7 @@ def update_nonmatching_functions():
                 else:
                     size = symbol.length
                 funcs[func].size = size
+                funcs[func].addr = symbol.address
                 db.session.commit()
                 # END TODO
 
@@ -282,12 +283,14 @@ def update_nonmatching_functions():
         # Calculate the size from the symbol
         symbol = symbols.find_symbol_by_name(func)
         size = 0
+        addr = 0
         if symbol is None:
             print(f"No symbol found for {func}, maybe static?")
             sys.exit(1)
             continue
         else:
             size = symbol.length
+            addr = symbol.address
 
         # Compile, so that we can calculate the score
         res = requests.post(
@@ -348,6 +351,7 @@ def update_nonmatching_functions():
             function = Function(
                 name=func,
                 file=file,
+                addr=addr,
                 size=size,
                 asm=asm,
                 best_score=score,

@@ -15,6 +15,7 @@ import logging
 submissions_schema = SubmissionSchema(many=True)
 submission_schema = SubmissionSchema()
 
+
 class SubmissionList(Resource):
 
     def post(self):
@@ -28,7 +29,8 @@ class SubmissionList(Resource):
             is_equivalent: bool = json['is_equivalent']
             parent: int = json.get('parent', 0)
             compiled: str = json['compiled']
-            SubmissionRepository.create(function, owner, code, score, is_equivalent, parent, compiled)
+            SubmissionRepository.create(
+                function, owner, code, score, is_equivalent, parent, compiled)
         except Exception as e:
             logging.exception(e)
             response = jsonify(e.to_dict())
@@ -39,6 +41,7 @@ class SubmissionList(Resource):
 class SubmissionResource(Resource):
     def get(self, submission: int):
         return submission_schema.dump(SubmissionRepository.get(submission))
+
 
 class FunctionSubmissions(Resource):
     def get(self, function: int):
@@ -55,16 +58,16 @@ class FunctionSubmissions(Resource):
                 # If this are the details of the current user, use them
                 if current_user.username == data['username'] and current_user.email == data['email']:
                     owner = current_user.id
-            
+
             if owner is None and data['username'] is not None and data['username'] != '':
-                user = UserRepository.get_by_name_and_email(username = data['username'], email = data['email'])
+                user = UserRepository.get_by_name_and_email(
+                    username=data['username'], email=data['email'])
                 if user is None:
                     # Need to create this user
-                    user = UserRepository.create_anonymous(username=data['username'], email=data['email'])
-                
-                owner = user.id
+                    user = UserRepository.create_anonymous(
+                        username=data['username'], email=data['email'])
 
-            
+                owner = user.id
 
             # Change the best_score of the function if this one is better
             func = FunctionRepository.get(int(function))
@@ -74,7 +77,7 @@ class FunctionSubmissions(Resource):
             separator = ''
             for line in compiled['asm']:
                 compiled_asm += separator + line['text']
-                separator ='\n'
+                separator = '\n'
 
             # Calculate the score on the server
             score = calculate_score(func.asm, compiled_asm)
@@ -83,8 +86,9 @@ class FunctionSubmissions(Resource):
                 func.best_score = score
             if score == 0:
                 func.is_matched = True
-    
-            submission = SubmissionRepository.create(function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'])
+
+            submission = SubmissionRepository.create(
+                function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'])
             return submission, 200
         except Exception as e:
             return error_response(e)

@@ -9,10 +9,12 @@ from schemas.user import UserSchema
 user_schema = UserSchema()
 submissions_schema = SubmissionSchema(many=True)
 
+
 class User(Resource):
     def get(self, username: str):
         user = UserRepository.get(username)
         return user, 200
+
 
 class UserResource(Resource):
     def get(self, id: str):
@@ -23,6 +25,7 @@ class UserResource(Resource):
         username: str = json['username']
         email: str = json['email']
         return user_schema.dump(UserRepository.update(int(id), username, email))
+
 
 class UserList(Resource):
     def post(self):
@@ -40,6 +43,7 @@ class UserList(Resource):
             response.status_code = e.status_code
             return response
 
+
 class CurrentUserResource(Resource):
     def get(self):
         user = UserRepository.get_current_user()
@@ -48,6 +52,7 @@ class CurrentUserResource(Resource):
                 'error': 'Not logged in'
             }, 404
         return user_schema.dump(user)
+
 
 class DashboardResource(Resource):
     def get(self):

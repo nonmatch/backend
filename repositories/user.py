@@ -1,8 +1,10 @@
 from exceptions import ResourceExists
 from flask_login import current_user
-from models import User, db
+from models import db
+from models.user import User
 from sqlalchemy.exc import IntegrityError
 from typing import Optional
+
 
 class UserRepository:
 
@@ -31,7 +33,8 @@ class UserRepository:
     @staticmethod
     def update(id: int, username: str, email: str) -> dict:
         if not current_user.is_authenticated or id != current_user.id:
-            raise Exception('Not allowed ' + str(current_user.id) + ' != ' + str(id))
+            raise Exception('Not allowed ' +
+                            str(current_user.id) + ' != ' + str(id))
         try:
             user = User.query.get(id)
             if user is None:
@@ -44,15 +47,14 @@ class UserRepository:
             User.rollback()
             raise ResourceExists('user already exists')
 
-
     @staticmethod
     def get_by_name(username: str) -> dict:
         ''' Query a user by username '''
         user: dict = {}
         user = User.query.filter_by(username=username).first_or_404()
         user = {
-          'username': user.username,
-          'date_created': str(user.date_created),
+            'username': user.username,
+            'date_created': str(user.date_created),
         }
         return user
 
