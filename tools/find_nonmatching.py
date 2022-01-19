@@ -255,6 +255,24 @@ def update_nonmatching_functions():
                 .first()
             )
             if submission is not None and submission.code == src:
+
+                # TODO remove
+                # Update function size
+                # Calculate the size from the symbol
+                symbol = symbols.find_symbol_by_name(func)
+                size = 0
+                if symbol is None:
+                    print(f"No symbol found for {func}, maybe static?")
+                    sys.exit(1)
+                    continue
+                else:
+                    size = symbol.length
+                funcs[func].size = size
+                db.session.commit()
+                # END TODO
+
+
+
                 # print(f'{func} code did not change, ignoring')
                 continue
             create_function = False
@@ -341,7 +359,6 @@ def update_nonmatching_functions():
         else:
             function_id = funcs[func].id
             asm = funcs[func].asm
-            # TODO need to update best score possibly
 
             # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
             score = calculate_score(asm, compiled_asm)
@@ -349,6 +366,8 @@ def update_nonmatching_functions():
             # Change the best_score of the function if this one is better
             if score < funcs[func].best_score:
                 funcs[func].best_score = score
+
+            funcs[func].size = size
             db.session.commit()
 
         SubmissionRepository.create(
