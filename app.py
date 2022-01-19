@@ -75,6 +75,12 @@ def login():
 @app.route("/generate_token")
 def generate_token():
     """After successful OAuth dance, generate the token that is send to the frontend, so the GitHub access token is not exposed"""
+
+    if request.args.get('mock') and app.config['ENV'] == 'development':
+        # Generate mock token for user with id 2.
+        token = generate_auth_token(2)
+        return redirect(app.config["FRONTEND_URL"] + "?token=" + token.decode("ascii"))
+
     if not current_user.is_authenticated:
         return "Authentication failed"
     token = generate_auth_token(current_user.id)

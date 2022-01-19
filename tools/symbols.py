@@ -72,8 +72,6 @@ def load_symbols_from_map(path: str) -> SymbolList: # TODO rename to load_symbol
                 addr = int(line.split(':')[1].strip(),16)-ROM_OFFSET
                 if prev_symbol is not None:
                     prev_symbol.length = addr-prev_symbol.address
-                if current_name == 'sub_0804E150':
-                    print(f'{current_file}, {current_name}, {addr}')
                 symbol = Symbol(addr, current_name, current_file)
                 symbols.add(symbol)
                 prev_symbol = symbol
