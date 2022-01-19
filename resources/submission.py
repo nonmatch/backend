@@ -70,7 +70,7 @@ class FunctionSubmissions(Resource):
                 owner = user.id
 
             # Change the best_score of the function if this one is better
-            func = FunctionRepository.get(int(function))
+            func = FunctionRepository.get_internal(int(function))
 
             compiled = json.loads(data['compiled'])
             compiled_asm = ''

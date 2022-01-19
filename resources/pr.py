@@ -47,7 +47,7 @@ class PrResource(Resource):
                 if submission is None:
                     return error_message_response(f'Could not find submission with id {id}')
                 submissions.append(submission)
-                function = FunctionRepository.get(submission.function)
+                function = FunctionRepository.get_internal(submission.function)
                 if function is None:
                     return error_message_response(f'Could not find function with id {submission.function}')
                 functions.append(function)

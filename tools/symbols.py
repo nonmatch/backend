@@ -38,7 +38,7 @@ class SymbolList:
         return None
 
 
-def load_symbols_from_map(path: str) -> SymbolList: # TODO rename to load_symbols_from_elf?
+def load_symbols_from_elf() -> SymbolList:
     symbols = SortedKeyList([], key=lambda x:x.address)
 
     output = check_output(['readelf', '--debug-dump=info', os.path.join(os.getenv('TMC_REPO'),'tmc.elf')], universal_newlines=True)

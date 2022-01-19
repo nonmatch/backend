@@ -68,5 +68,9 @@ class FunctionRepository:
         return Function.query.with_entities(*public_fields_single).filter_by(id=id).first_or_404()
 
     @staticmethod
+    def get_internal(id: int) -> Function:
+        return Function.query.get(id)
+
+    @staticmethod
     def get_by_name(name: str) -> Optional[Function]:
         return Function.query.with_entities(*public_fields_single).filter_by(name=name).first()

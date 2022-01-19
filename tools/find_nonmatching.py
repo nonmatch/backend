@@ -11,7 +11,8 @@ from models.submission import Submission
 from repositories.submission import SubmissionRepository
 from sqlalchemy import desc
 
-from tools.symbols import SymbolList, load_symbols_from_map
+from tools.symbols import SymbolList, load_symbols_from_elf
+from tools.symbols_from_map import load_symbols_from_map
 import difflib
 
 TMC_REPO = os.getenv("TMC_REPO")
@@ -214,7 +215,23 @@ ignored_functions = [
 
 
 def update_nonmatching_functions():
-    symbols = load_symbols_from_map(os.path.join(TMC_REPO, "tmc.map"))
+    symbols = load_symbols_from_elf()
+    map_symbols = load_symbols_from_map(os.path.join(TMC_REPO, "tmc.map"))
+
+    # elf currently only reads the functions from c files from the DWARF information
+    # read asm files and variables from the .map
+    for symbol in map_symbols.symbols:
+        pub_symbol = symbols.get_symbol_at(symbol.address)
+        if pub_symbol.address != symbol.address:
+            pub_symbol = None
+        if pub_symbol is None:
+            # So far unknown symbol
+            symbols.symbols.add(symbol)
+        else:
+            # Symbol is known, maybe the size can be more precise
+            if pub_symbol.length > symbol.length:
+                pub_symbol.length = symbol.length
+
     nonmatch = collect_non_matching_funcs()
     asm_funcs = collect_asm_funcs()
 
@@ -228,8 +245,10 @@ def update_nonmatching_functions():
     # Query all existing functions in the database
     functions = Function.query.filter_by(deleted=False).all()
     funcs = {}
+    addrs = {}
     for func in functions:
         funcs[func.name] = func
+        addrs[func.addr] = func.name
 
     for (is_asm_func, file, func) in repo_functions:
         if func in ignored_functions:
@@ -242,6 +261,21 @@ def update_nonmatching_functions():
             continue
 
         create_function = True
+        rename_function = False
+        new_name = ''
+
+        symbol = symbols.find_symbol_by_name(func)
+        if symbol is None:
+            print(f"No symbol found for {func}, maybe static?")
+            sys.exit(1)
+            continue
+
+        if symbol.address in addrs and addrs[symbol.address] != func:
+            print(f'Renaming {addrs[symbol.address]} to {func}...')
+            funcs[func] = funcs[addrs[symbol.address]]
+            del funcs[addrs[symbol.address]]
+            funcs[func].name = func
+            rename_function = True
 
         # Is the function already in the file
         if func in funcs:
@@ -258,16 +292,7 @@ def update_nonmatching_functions():
 
                 # TODO remove
                 # Update function size
-                # Calculate the size from the symbol
-                symbol = symbols.find_symbol_by_name(func)
-                size = 0
-                if symbol is None:
-                    print(f"No symbol found for {func}, maybe static?")
-                    sys.exit(1)
-                    continue
-                else:
-                    size = symbol.length
-                funcs[func].size = size
+                funcs[func].size = symbol.length
                 funcs[func].addr = symbol.address
                 db.session.commit()
                 # END TODO
@@ -281,16 +306,8 @@ def update_nonmatching_functions():
             # Only update the submission
 
         # Calculate the size from the symbol
-        symbol = symbols.find_symbol_by_name(func)
-        size = 0
-        addr = 0
-        if symbol is None:
-            print(f"No symbol found for {func}, maybe static?")
-            sys.exit(1)
-            continue
-        else:
-            size = symbol.length
-            addr = symbol.address
+        addr = symbol.address
+        size = symbol.length
 
         # Compile, so that we can calculate the score
         res = requests.post(
@@ -362,7 +379,10 @@ def update_nonmatching_functions():
             function_id = function.id
         else:
             function_id = funcs[func].id
-            asm = funcs[func].asm
+            # Run pycat.py on the asm code
+            res = requests.post(PYCAT_URL, asm)
+            asm = res.text.rstrip()
+            funcs[func].asm = asm
 
             # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
             score = calculate_score(asm, compiled_asm)
