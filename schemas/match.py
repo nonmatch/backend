@@ -9,3 +9,4 @@ class MatchSchema(ma.Schema):
     submission = fields.Int()
     time_created = fields.DateTime()
     size = fields.Int()
+    file = fields.Str()

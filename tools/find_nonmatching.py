@@ -214,7 +214,7 @@ ignored_functions = [
 ]
 
 
-def update_nonmatching_functions():
+def get_symbols() -> SymbolList:
     symbols = load_symbols_from_elf()
     map_symbols = load_symbols_from_map(os.path.join(TMC_REPO, "tmc.map"))
 
@@ -231,6 +231,10 @@ def update_nonmatching_functions():
             # Symbol is known, maybe the size can be more precise
             if pub_symbol.length > symbol.length:
                 pub_symbol.length = symbol.length
+    return symbols
+
+def update_nonmatching_functions():
+    symbols = get_symbols()
 
     nonmatch = collect_non_matching_funcs()
     asm_funcs = collect_asm_funcs()
@@ -418,12 +422,16 @@ def update_nonmatching_functions():
 def store_code(
     name: str, includes: str, header: str, src: str, matching: bool
 ) -> Tuple[bool, str]:
+
+
+    symbols = get_symbols()
+
     # Find the .inc file for the non matching function
     inc_file = find_inc_file(name)
     if inc_file is None:
         return (True, f"No {name}.inc found in asm/non_matching folder.")
 
-    src_file = find_source_file(name)
+    src_file = find_source_file(name, symbols)
     if src_file is None:
         return (True, f"Source file for {name} not found in tmc.map.")
     src_file = os.path.join(TMC_REPO, src_file)

@@ -18,7 +18,8 @@ class MatchRepository:
                     'owner': submission.owner,
                     'submission': submission.id,
                     'time_created': submission.time_created,
-                    'size': function['size']
+                    'size': function['size'],
+                    'file': function['file']
                 })
 
         return matches
