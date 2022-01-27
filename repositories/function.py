@@ -72,5 +72,5 @@ class FunctionRepository:
         return Function.query.get(id)
 
     @staticmethod
-    def get_by_name(name: str) -> Optional[Function]:
-        return Function.query.with_entities(*public_fields_single).filter_by(name=name).first()
+    def get_by_name_internal(name: str) -> Optional[Function]:
+        return Function.query.filter_by(name=name).first()

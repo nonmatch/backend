@@ -28,16 +28,16 @@ class PrResource(Resource):
         try:
             data = request.get_json()
             if data is None:
-                return error_message_response('Invalid request')
+                return error_message_response('Invalid request.')
 
             if current_user is None or not current_user.is_authenticated:
-                return error_message_response('Need to be logged in to create PR')
+                return error_message_response('Need to be logged in to create PR.')
 
             if not github.authorized:
-                return error_message_response('Not correctly logged into GitHub')
+                return error_message_response('Not correctly logged into GitHub.')
 
             if data['title'] == '':
-                return error_message_response('Need to enter a title')
+                return error_message_response('Need to enter a title.')
 
             submissions = []
             functions = []
@@ -45,16 +45,16 @@ class PrResource(Resource):
             for id in data['selected']:
                 submission = SubmissionRepository.get(id)
                 if submission is None:
-                    return error_message_response(f'Could not find submission with id {id}')
+                    return error_message_response(f'Could not find submission with id {id}.')
                 submissions.append(submission)
                 function = FunctionRepository.get_internal(submission.function)
                 if function is None:
-                    return error_message_response(f'Could not find function with id {submission.function}')
+                    return error_message_response(f'Could not find function with id {submission.function}.')
                 functions.append(function)
                 if submission.score != 0:
-                    return error_message_response(f'Submission for function {function.name} has a score of {submission.score}')
+                    return error_message_response(f'Submission for function {function.name} has a score of {submission.score}.')
                 if function.is_submitted:
-                    return error_message_response(f'A Pull Request for function {function.name} was already submitted')
+                    return error_message_response(f'A Pull Request for function {function.name} was already submitted.')
 
             pr = Pr(title=data['title'], text=data['text'], creator=current_user.id,
                     functions=', '.join(map(lambda x: str(x), data['selected'])))
@@ -64,6 +64,7 @@ class PrResource(Resource):
             branch = f'patch-{pr.id}'
             # Set up the commit in the git repository
             check_call(['git', 'checkout', 'master'], cwd=TMC_REPO)
+            check_call(['git', 'reset', '--hard', 'HEAD'], cwd=TMC_REPO)
             check_call(['git', 'pull', 'upstream', 'master'], cwd=TMC_REPO)
             check_call(['git', 'checkout', '-b', branch], cwd=TMC_REPO)
 

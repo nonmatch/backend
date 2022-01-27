@@ -2,7 +2,7 @@ from models import db
 from models.function import Function
 from models.user import User
 from repositories.function import FunctionRepository
-from tools.find_nonmatching import PYCAT_URL, get_code, update_nonmatching_functions
+from tools.find_nonmatching import PYCAT_URL, extract_USA_asm, get_code, get_symbols, update_nonmatching_functions
 import click
 import requests
 import sys
@@ -37,15 +37,19 @@ def create_cli(app):
     @app.cli.command('update-asm')
     @click.argument('func')
     def update_asm(func):
-        function = FunctionRepository.get_by_name(func)
+        function = FunctionRepository.get_by_name_internal(func)
         if function is None:
             print(f'Function {func} not found')
             sys.exit(1)
-        (err, asm, src, signature) = get_code(func, True)
+
+        symbols = get_symbols()
+        (err, asm, src, signature) = get_code(func, True, symbols)
         if err:
             print(asm, file=sys.stderr)
             sys.exit(1)
 
+
+        asm = extract_USA_asm(asm)
         # Run pycat.py on the asm code
         res = requests.post(PYCAT_URL, asm)
         asm = res.text.rstrip()
