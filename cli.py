@@ -57,6 +57,13 @@ def create_cli(app):
         db.session.commit()
         print('done')
 
+    @app.cli.command('asm-errors')
+    def find_asm_errors():
+        print('\nFunctions with errors in asm:\n')
+        functions = Function.query.with_entities(Function.id, Function.name, Function.is_asm_func).filter(Function.asm.like('%error%')).all()
+        for func in functions:
+            print(f'{func.id}\t{"a" if func.is_asm_func else "n"} {func.name}')
 
 # Find functions with error in asm
 # nonmatch=# SELECT id from function where asm like '%error%';
+# nonmatch=# SELECT name,is_asm_func from "function" where asm like '%error%';
