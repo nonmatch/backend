@@ -86,7 +86,10 @@ def find_source_file(name: str, symbols: SymbolList) -> Optional[str]:
     if symbol is None:
         return None
     else:
-        return symbol.file
+        if symbol.file.endswith('.o'):
+            return symbol.file[0:-2] + '.c'
+        else:
+            return symbol.file
 
 
 def read_file_split_headers(src_file: str) -> Tuple[List[str], List[str]]:
@@ -599,3 +602,18 @@ def extract_USA_asm(asm: str) -> str:
         output_lines.append(line)
     return '\n'.join(output_lines)
 
+def get_headers_code(function_name: str) -> str:
+    # symbols = get_symbols()
+    # Only use map symbols because faster
+    symbols = load_symbols_from_map(os.path.join(TMC_REPO, "tmc.map"))
+
+    src_file = find_source_file(function_name, symbols)
+    if src_file is None:
+        raise Exception(f"Source file for {function_name} not found in tmc.map.")
+    src_file = os.path.join(TMC_REPO, src_file)
+
+    if not os.path.isfile(src_file):
+        raise Exception(f"{src_file} is not a file.")
+
+    (headers, data) = read_file_split_headers(src_file)
+    return "".join(headers) + "// end of existing headers\n\n// Type your C code here..."

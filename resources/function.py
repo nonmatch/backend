@@ -1,6 +1,8 @@
 from flask_restful import Resource
 from repositories.function import FunctionRepository
 from schemas.function import FunctionSchema
+from tools.find_nonmatching import get_headers_code
+from utils import error_response
 
 functions_schema = FunctionSchema(many=True)
 function_schema = FunctionSchema()
@@ -21,3 +23,12 @@ class AsmFunctionList(Resource):
 class FunctionResource(Resource):
     def get(self, function):
         return function_schema.dump(FunctionRepository.get(function))
+
+class FunctionHeadersResource(Resource):
+    def get(self, function):
+        try:
+            return {
+                'code': get_headers_code(FunctionRepository.get(function).name)
+            }
+        except Exception as e:
+            return error_response(e)
