@@ -6,7 +6,8 @@ from tools.find_nonmatching import PYCAT_URL, extract_USA_asm, get_code, get_sym
 import click
 import requests
 import sys
-
+from subprocess import check_call
+import os
 
 def create_cli(app):
     @app.cli.command('create-function')
@@ -31,6 +32,18 @@ def create_cli(app):
 
     @app.cli.command('update-nonmatch')
     def update_nonmatch():
+        update_nonmatching_functions()
+        print('done')
+
+    TMC_REPO = os.getenv('TMC_REPO')
+    @app.cli.command('cron')
+    def cron():
+        check_call(['git', 'checkout', 'master'], cwd=TMC_REPO)
+        check_call(['git', 'reset', '--hard', 'HEAD'], cwd=TMC_REPO)
+        check_call(['git', 'pull', 'upstream', 'master'], cwd=TMC_REPO)
+        check_call(['git', 'checkout', 'nonmatch'], cwd=TMC_REPO)
+        check_call(['git', 'rebase', 'master'], cwd=TMC_REPO)
+
         update_nonmatching_functions()
         print('done')
 
