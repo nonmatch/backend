@@ -9,6 +9,8 @@ import sys
 from subprocess import check_call
 import os
 
+from tools.lock import GIT_LOCK, with_lock
+
 def create_cli(app):
     @app.cli.command('create-function')
     @click.argument('name')
@@ -38,14 +40,22 @@ def create_cli(app):
     TMC_REPO = os.getenv('TMC_REPO')
     @app.cli.command('cron')
     def cron():
+        with_lock(db.session, perform_cron, fail_cron, GIT_LOCK)
+
+    def perform_cron():
         check_call(['git', 'checkout', 'master'], cwd=TMC_REPO)
         check_call(['git', 'reset', '--hard', 'HEAD'], cwd=TMC_REPO)
         check_call(['git', 'pull', 'upstream', 'master'], cwd=TMC_REPO)
         check_call(['git', 'checkout', 'nonmatch'], cwd=TMC_REPO)
         check_call(['git', 'rebase', 'master'], cwd=TMC_REPO)
+        check_call(['make', '-j'], cwd=TMC_REPO)
 
         update_nonmatching_functions()
         print('done')
+
+    def fail_cron():
+        print('Could not acquire git lock.')
+        sys.exit(1)
 
     @app.cli.command('update-asm')
     @click.argument('func')
