@@ -64,9 +64,12 @@ def create_cli(app):
         if function is None:
             print(f'Function {func} not found')
             sys.exit(1)
+        update_asm_for_func(function)
+        print('done')
 
+    def update_asm_for_func(function: Function):
         symbols = get_symbols()
-        (err, asm, src, signature) = get_code(func, True, symbols)
+        (err, asm, src, signature) = get_code(function.name, True, symbols)
         if err:
             print(asm, file=sys.stderr)
             sys.exit(1)
@@ -78,7 +81,18 @@ def create_cli(app):
         asm = res.text.rstrip()
         function.asm = asm
         db.session.commit()
-        print('done')
+
+
+    @app.cli.command('update-all-asm')
+    def update_all_asm():
+        functions = Function.query.filter_by(
+            deleted=False, is_submitted=False
+        ).all()
+
+        for func in functions:
+            print(f'{func.name}...')
+            update_asm_for_func(func)
+        print('all done')
 
     @app.cli.command('asm-errors')
     def find_asm_errors():
