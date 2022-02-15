@@ -1,4 +1,4 @@
-"""empty message
+"""Add pr url and submitted flag
 
 Revision ID: b84bb0dc5139
 Revises: 8185d6b80a40

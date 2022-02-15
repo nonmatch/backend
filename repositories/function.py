@@ -56,6 +56,14 @@ class FunctionRepository:
         ).order_by(Function.id).all()
 
     @staticmethod
+    def get_all_equivalent() -> List[Function]:
+        return Function.query.filter_by(
+            deleted=False, is_matched=False, is_submitted=False, is_asm_func=True
+        ).with_entities(
+            *public_fields
+        ).order_by(Function.id).all()
+
+    @staticmethod
     def get_all_matched() -> List[Function]:
         return Function.query.filter_by(
             deleted=False, is_matched=True, is_submitted=False

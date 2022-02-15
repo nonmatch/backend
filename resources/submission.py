@@ -86,6 +86,8 @@ class FunctionSubmissions(Resource):
                 func.best_score = score
             if score == 0:
                 func.is_matched = True
+            if not func.has_code_try:
+                func.has_code_try = True
 
             submission = SubmissionRepository.create(
                 function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'])

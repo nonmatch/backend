@@ -24,3 +24,6 @@ class Function(db.Model):
     best_score = db.Column(db.Integer, server_default=expression.text('99999'))
     is_asm_func = db.Column(
         db.Boolean, server_default=expression.false(), nullable=False)
+    # Has a submission associated that contains at least some code
+    has_code_try = db.Column(
+        db.Boolean, server_default=expression.false(), nullable=False)
