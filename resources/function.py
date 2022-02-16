@@ -19,6 +19,16 @@ class AsmFunctionList(Resource):
         functions = FunctionRepository.get_all_asm()
         return functions_schema.dump(functions), 200
 
+class WithCodeFunctionList(Resource):
+    def get(self):
+        functions = FunctionRepository.get_all_with_code()
+        return functions_schema.dump(functions), 200
+
+class WithoutCodeFunctionList(Resource):
+    def get(self):
+        functions = FunctionRepository.get_all_without_code()
+        return functions_schema.dump(functions), 200
+
 
 class FunctionResource(Resource):
     def get(self, function):

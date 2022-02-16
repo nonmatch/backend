@@ -56,9 +56,17 @@ class FunctionRepository:
         ).order_by(Function.id).all()
 
     @staticmethod
-    def get_all_equivalent() -> List[Function]:
+    def get_all_with_code() -> List[Function]:
         return Function.query.filter_by(
-            deleted=False, is_matched=False, is_submitted=False, is_asm_func=True
+            deleted=False, is_matched=False, is_submitted=False, has_code_try=True
+        ).with_entities(
+            *public_fields
+        ).order_by(Function.id).all()
+
+    @staticmethod
+    def get_all_without_code() -> List[Function]:
+        return Function.query.filter_by(
+            deleted=False, is_matched=False, is_submitted=False, has_code_try=False
         ).with_entities(
             *public_fields
         ).order_by(Function.id).all()

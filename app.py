@@ -11,7 +11,7 @@ from cli import create_cli
 from models import db
 from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
-from resources.function import AsmFunctionList, FunctionHeadersResource, FunctionList, FunctionResource
+from resources.function import AsmFunctionList, FunctionHeadersResource, FunctionList, FunctionResource, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
@@ -86,6 +86,8 @@ def generate_token():
 api = Api(app)
 api.add_resource(FunctionList, "/functions")
 api.add_resource(AsmFunctionList, "/asm_functions")
+api.add_resource(WithCodeFunctionList, "/with_code")
+api.add_resource(WithoutCodeFunctionList, "/without_code")
 api.add_resource(FunctionResource, "/functions/<function>")
 api.add_resource(FunctionHeadersResource, "/functions/<function>/headers")
 api.add_resource(SubmissionList, "/submissions")
