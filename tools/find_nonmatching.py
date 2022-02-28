@@ -383,6 +383,7 @@ def update_nonmatching_functions():
                 asm=asm,
                 best_score=score,
                 is_asm_func=is_asm_func,
+                has_code_try=not is_asm_func
             )
             db.session.add(function)
             db.session.commit()
