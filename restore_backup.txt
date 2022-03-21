@@ -1,3 +1,0 @@
-dropdb -U postgres nonmatch
-createdb -U postgres nonmatch
-psql -U postgres nonmatch < db.sql

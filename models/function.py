@@ -27,3 +27,6 @@ class Function(db.Model):
     # Has a submission associated that contains at least some code
     has_code_try = db.Column(
         db.Boolean, server_default=expression.false(), nullable=False)
+    # decomp.me
+    decomp_me_scratch = db.Column(db.String(10))
+    decomp_me_matched = db.Column(db.Boolean, server_default=expression.false(), nullable=False)

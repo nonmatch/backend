@@ -101,6 +101,33 @@ def create_cli(app):
         for func in functions:
             print(f'{func.id}\t{"a" if func.is_asm_func else "n"} {func.name}')
 
+    @app.cli.command('decomp-me')
+    def find_decomp_me_matched():
+        functions = Function.query.filter_by(
+            deleted=False, is_submitted=False, is_matched=False, decomp_me_matched=False
+        ).filter(Function.decomp_me_scratch.isnot(None)).all()
+        for func in functions:
+            #DECOMP_ME_BACKEND = 'http://localhost:8000/api'
+            DECOMP_ME_BACKEND = 'https://decomp.me/api'
+            res = requests.get(DECOMP_ME_BACKEND + '/scratch/' + func.decomp_me_scratch + '/family')
+            for scratch in res.json():
+                if scratch['score'] == 0:
+                    func.decomp_me_matched = True
+                    db.session.commit()
+                    break
+        print('done')
+
+    @app.cli.command('add-decomp-me')
+    @click.argument('func')
+    @click.argument('slug')
+    def add_decomp_me(func, slug):
+        function = FunctionRepository.get_by_name_internal(func)
+        if function is None:
+            print(f'Function {func} not found')
+            sys.exit(1)
+        function.decomp_me_scratch = slug
+        db.session.commit()
+        print('done')
 # Find functions with error in asm
 # nonmatch=# SELECT id from function where asm like '%error%';
 # nonmatch=# SELECT name,is_asm_func from "function" where asm like '%error%';

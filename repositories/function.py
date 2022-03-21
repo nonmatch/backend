@@ -10,7 +10,9 @@ public_fields = (
     Function.file,
     Function.size,
     Function.best_score,
-    Function.time_created)
+    Function.time_created,
+    Function.decomp_me_scratch,
+    Function.decomp_me_matched)
 
 public_fields_single = (
     *public_fields,
@@ -90,3 +92,8 @@ class FunctionRepository:
     @staticmethod
     def get_by_name_internal(name: str) -> Optional[Function]:
         return Function.query.filter_by(name=name).first()
+
+    @staticmethod
+    def set_decomp_me_scratch(function: Function, decomp_me_slug: str):
+        function.decomp_me_scratch = decomp_me_slug
+        db.session.commit()
