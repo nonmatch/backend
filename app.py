@@ -11,7 +11,7 @@ from cli import create_cli
 from models import db
 from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
-from resources.function import AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionResource, WithCodeFunctionList, WithoutCodeFunctionList
+from resources.function import AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
@@ -91,6 +91,8 @@ api.add_resource(WithoutCodeFunctionList, "/without_code")
 api.add_resource(FunctionResource, "/functions/<function>")
 api.add_resource(FunctionHeadersResource, "/functions/<function>/headers")
 api.add_resource(FunctionDecompMeResource, "/functions/<function>/decompMe")
+api.add_resource(FunctionLockResource, "/functions/<function>/lock")
+api.add_resource(FunctionUnlockResource, "/functions/<function>/unlock")
 api.add_resource(SubmissionList, "/submissions")
 api.add_resource(SubmissionResource, "/submissions/<submission>")
 api.add_resource(UserResource, "/users/<id>")

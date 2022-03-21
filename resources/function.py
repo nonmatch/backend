@@ -1,4 +1,5 @@
 from flask import request
+from flask_login import current_user
 from flask_restful import Resource
 from repositories.function import FunctionRepository
 from schemas.function import FunctionSchema
@@ -51,4 +52,31 @@ class FunctionDecompMeResource(Resource):
             return error_message_response('Function has already exported to decomp.me')
         json = request.get_json(silent=True)
         FunctionRepository.set_decomp_me_scratch(func, json['slug'])
+        return 'ok'
+
+class FunctionLockResource(Resource):
+    def post(self, function):
+        func = FunctionRepository.get_internal(function)
+        if current_user is None or not current_user.is_authenticated:
+            return error_message_response('Not logged in.')
+
+        if func.locked_by or func.is_matched or func.deleted or func.is_submitted:
+            return error_message_response(f'Function {func.name} is already locked.')
+
+        FunctionRepository.lock(func, current_user.id)
+        return 'ok'
+
+class FunctionUnlockResource(Resource):
+    def post(self, function):
+        func = FunctionRepository.get_internal(function)
+        if current_user is None or not current_user.is_authenticated:
+            return error_message_response('Not logged in.')
+
+        if not func.locked_by or func.is_matched or func.deleted or func.is_submitted:
+            return error_message_response(f'Function {func.name} is not locked.')
+
+        if func.locked_by != current_user.id:
+            return error_message_response(f'Function {func.name} is not locked by you.')
+
+        FunctionRepository.unlock(func)
         return 'ok'

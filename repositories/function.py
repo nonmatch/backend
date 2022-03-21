@@ -12,7 +12,8 @@ public_fields = (
     Function.best_score,
     Function.time_created,
     Function.decomp_me_scratch,
-    Function.decomp_me_matched)
+    Function.decomp_me_matched,
+    Function.locked_by)
 
 public_fields_single = (
     *public_fields,
@@ -96,4 +97,14 @@ class FunctionRepository:
     @staticmethod
     def set_decomp_me_scratch(function: Function, decomp_me_slug: str):
         function.decomp_me_scratch = decomp_me_slug
+        db.session.commit()
+
+    @staticmethod
+    def lock(function: Function, user: id):
+        function.locked_by = user
+        db.session.commit()
+
+    @staticmethod
+    def unlock(function: Function):
+        function.locked_by = None
         db.session.commit()

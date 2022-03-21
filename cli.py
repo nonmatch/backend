@@ -109,6 +109,7 @@ def create_cli(app):
         for func in functions:
             #DECOMP_ME_BACKEND = 'http://localhost:8000/api'
             DECOMP_ME_BACKEND = 'https://decomp.me/api'
+            print(f'Check family of {func.decomp_me_scratch}')
             res = requests.get(DECOMP_ME_BACKEND + '/scratch/' + func.decomp_me_scratch + '/family')
             for scratch in res.json():
                 if scratch['score'] == 0:
