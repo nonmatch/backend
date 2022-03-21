@@ -113,6 +113,7 @@ def create_cli(app):
             res = requests.get(DECOMP_ME_BACKEND + '/scratch/' + func.decomp_me_scratch + '/family')
             for scratch in res.json():
                 if scratch['score'] == 0:
+                    print('Matched')
                     func.decomp_me_matched = True
                     db.session.commit()
                     break
