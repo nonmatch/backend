@@ -15,6 +15,7 @@ from resources.function import AsmFunctionList, FunctionDecompMeResource, Functi
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
+from resources.stats import StatsResource
 from resources.submission import FunctionSubmissions, SubmissionList, SubmissionResource
 from resources.user import CurrentUserResource, DashboardResource, UserResource
 
@@ -25,11 +26,11 @@ from config import get_config
 
 import logging
 
-logging.basicConfig(filename="error.log", level=logging.DEBUG)
+logging.basicConfig(filename='error.log', level=logging.DEBUG)
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.config.from_object(get_config(None))
-app.register_blueprint(github_blueprint, url_prefix="/login")
+app.register_blueprint(github_blueprint, url_prefix='/login')
 
 db.init_app(app)
 migrate = Migrate(app, db)
@@ -42,70 +43,71 @@ with app.app_context():
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 
-@app.route("/")
+@app.route('/')
 def homepage():
-    return redirect(app.config["FRONTEND_URL"])
+    return redirect(app.config['FRONTEND_URL'])
 
 
-@app.route("/ping")
+@app.route('/ping')
 def ping():
-    return jsonify(ping="pong")
+    return jsonify(ping='pong')
 
 
-@app.route("/github")
+@app.route('/github')
 def login():
     if not github.authorized:
-        return redirect(url_for("github.login"))
-    res = github.get("/user/public_emails")
+        return redirect(url_for('github.login'))
+    res = github.get('/user/public_emails')
     logging.debug(res.json())
 
-    res = github.get("/user")
+    res = github.get('/user')
     data = res.json()
     logging.debug(data)
-    if "message" in data:
-        return {"error": data["message"]}
+    if 'message' in data:
+        return {'error': data['message']}
 
     return f'You are @{res.json()["login"]} on GitHub'
 
 
-@app.route("/generate_token")
+@app.route('/generate_token')
 def generate_token():
-    """After successful OAuth dance, generate the token that is send to the frontend, so the GitHub access token is not exposed"""
+    '''After successful OAuth dance, generate the token that is send to the frontend, so the GitHub access token is not exposed'''
 
     if request.args.get('mock') and app.config['ENV'] == 'development':
         # Generate mock token for user with id 2.
         token = generate_auth_token(2)
-        return redirect(app.config["FRONTEND_URL"] + "?token=" + token.decode("ascii"))
+        return redirect(app.config['FRONTEND_URL'] + '?token=' + token.decode('ascii'))
 
     if not current_user.is_authenticated:
-        return "Authentication failed"
+        return 'Authentication failed'
     token = generate_auth_token(current_user.id)
-    return redirect(app.config["FRONTEND_URL"] + "?token=" + token.decode("ascii"))
+    return redirect(app.config['FRONTEND_URL'] + '?token=' + token.decode('ascii'))
 
 
 api = Api(app)
-api.add_resource(FunctionList, "/functions")
-api.add_resource(AsmFunctionList, "/asm_functions")
-api.add_resource(WithCodeFunctionList, "/with_code")
-api.add_resource(WithoutCodeFunctionList, "/without_code")
-api.add_resource(FunctionResource, "/functions/<function>")
-api.add_resource(FunctionHeadersResource, "/functions/<function>/headers")
-api.add_resource(FunctionDecompMeResource, "/functions/<function>/decompMe")
-api.add_resource(FunctionLockResource, "/functions/<function>/lock")
-api.add_resource(FunctionUnlockResource, "/functions/<function>/unlock")
-api.add_resource(SubmissionList, "/submissions")
-api.add_resource(SubmissionResource, "/submissions/<submission>")
-api.add_resource(UserResource, "/users/<id>")
-api.add_resource(CurrentUserResource, "/user")
-api.add_resource(DashboardResource, "/user/functions")
-api.add_resource(LoginResource, "/oauth/login")
-api.add_resource(LogoutResource, "/oauth/logout")
-api.add_resource(FunctionSubmissions, "/functions/<function>/submissions")
-api.add_resource(MatchResource, "/matches")
-api.add_resource(PrResource, "/pr")
+api.add_resource(FunctionList, '/functions')
+api.add_resource(AsmFunctionList, '/asm_functions')
+api.add_resource(WithCodeFunctionList, '/with_code')
+api.add_resource(WithoutCodeFunctionList, '/without_code')
+api.add_resource(FunctionResource, '/functions/<function>')
+api.add_resource(FunctionHeadersResource, '/functions/<function>/headers')
+api.add_resource(FunctionDecompMeResource, '/functions/<function>/decompMe')
+api.add_resource(FunctionLockResource, '/functions/<function>/lock')
+api.add_resource(FunctionUnlockResource, '/functions/<function>/unlock')
+api.add_resource(SubmissionList, '/submissions')
+api.add_resource(SubmissionResource, '/submissions/<submission>')
+api.add_resource(UserResource, '/users/<id>')
+api.add_resource(CurrentUserResource, '/user')
+api.add_resource(DashboardResource, '/user/functions')
+api.add_resource(LoginResource, '/oauth/login')
+api.add_resource(LogoutResource, '/oauth/logout')
+api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
+api.add_resource(MatchResource, '/matches')
+api.add_resource(PrResource, '/pr')
+api.add_resource(StatsResource, '/stats')
 
 create_cli(app)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     app.run(debug=True)

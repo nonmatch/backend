@@ -20,6 +20,14 @@ public_fields_single = (
     Function.asm
 )
 
+stats_fields = (
+    *public_fields,
+    Function.is_asm_func,
+    Function.is_matched,
+    Function.is_submitted,
+    Function.deleted
+)
+
 
 class FunctionRepository:
 
@@ -80,6 +88,12 @@ class FunctionRepository:
             deleted=False, is_matched=True, is_submitted=False
         ).with_entities(
             *public_fields
+        ).order_by(Function.id).all()
+
+    @staticmethod
+    def get_all_internal() -> List[Function]:
+        return Function.query.with_entities(
+            *stats_fields
         ).order_by(Function.id).all()
 
     @staticmethod
