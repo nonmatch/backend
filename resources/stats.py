@@ -25,7 +25,7 @@ class StatsResource(Resource):
             total_functions += 1
             total_size += function.size
 
-            if function.is_matched and not function.is_submitted:
+            if function.is_matched and not function.is_submitted and not function.deleted:
                 unsubmitted_size += function.size
 
             if function.deleted or function.is_matched or function.is_submitted:
