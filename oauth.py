@@ -31,9 +31,9 @@ def github_logged_in(blueprint, token):
         logging.debug(account_info)
         username = account_info['login']
 
-        query = User.query.filter_by(username=username,email=entry['email'])
+        query = User.query.filter_by(username=username)
         try:
-            user = query.one()
+            user = query.first()
         except NoResultFound:
             avatar = account_info['avatar_url']
             email = ''
