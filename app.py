@@ -11,6 +11,7 @@ from cli import create_cli
 from models import db
 from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
+from resources.cexplore import CompileResource, PycatResource
 from resources.function import AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
@@ -105,6 +106,8 @@ api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
 api.add_resource(MatchResource, '/matches')
 api.add_resource(PrResource, '/pr')
 api.add_resource(StatsResource, '/stats')
+api.add_resource(CompileResource, '/api/compiler/agbpyccC/compile')
+api.add_resource(PycatResource, '/api/compiler/agbpycc/compile')
 
 create_cli(app)
 
