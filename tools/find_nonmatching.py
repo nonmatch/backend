@@ -325,7 +325,7 @@ def update_nonmatching_functions():
             },
             json={
                 "source": src,
-                "compiler": "tmc_agbcc",
+                "compiler": "agbcc",
                 "options": {
                     "userArguments": "-O2",  # TODO allow the user to specify this?
                     "compilerOptions": {"produceGccDump": {}, "produceCfg": False},
@@ -341,7 +341,12 @@ def update_nonmatching_functions():
                         "trim": False,
                     },
                     "tools": [],
-                    "libraries": [],
+                    "libraries": [
+                        {
+                            "id": "tmc",
+                            "version": "master"
+                        }
+                    ],
                 },
                 "lang": "c",
                 "allowStoreCodeDebug": True,
