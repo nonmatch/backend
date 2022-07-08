@@ -3,7 +3,8 @@ from flask_restful import Resource
 from flask import Response, request
 import requests
 
-CEXPLORE_HOST='http://127.0.0.1:10240'
+CEXPLORE_HOST='http://192.168.0.178:10240'
+#CEXPLORE_HOST='https://cexplore.henny022.eu.ngrok.io'
 
 def proxy_forward(url: str) -> Response:
         resp=requests.request(
