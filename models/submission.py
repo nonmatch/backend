@@ -16,3 +16,4 @@ class Submission(db.Model):
         timezone=True), server_default=func.now())
     time_updated = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     compiled = db.Column(db.Text)
+    comments = db.Column(db.Text)

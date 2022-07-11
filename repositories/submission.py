@@ -10,7 +10,7 @@ import logging
 
 class SubmissionRepository:
     @staticmethod
-    def create(function: int, owner: int, code: str, score: int, is_equivalent: bool, parent: int, compiled: str) -> dict:
+    def create(function: int, owner: int, code: str, score: int, is_equivalent: bool, parent: int, compiled: str, comments: str) -> dict:
         '''Create submission'''
         try:
             if parent is not None and int(parent) == 0:
@@ -22,7 +22,8 @@ class SubmissionRepository:
                 score=score,
                 is_equivalent=is_equivalent,
                 parent=parent,
-                compiled=compiled
+                compiled=compiled,
+                comments=comments
             )
             db.session.add(submission)
             db.session.commit()

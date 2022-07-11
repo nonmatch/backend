@@ -16,6 +16,7 @@ submissions_schema = SubmissionSchema(many=True)
 submission_schema = SubmissionSchema()
 
 
+# TODO deprecated, remove?
 class SubmissionList(Resource):
 
     def post(self):
@@ -90,7 +91,7 @@ class FunctionSubmissions(Resource):
                 func.has_code_try = True
 
             submission = SubmissionRepository.create(
-                function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'])
+                function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'], data['comments'])
             return submission, 200
         except Exception as e:
             return error_response(e)
