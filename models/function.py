@@ -30,3 +30,5 @@ class Function(db.Model):
     # decomp.me
     decomp_me_scratch = db.Column(db.String(10))
     decomp_me_matched = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
+    # Additional compile flags
+    compile_flags = db.Column(db.String(128))

@@ -133,3 +133,15 @@ def create_cli(app):
 # Find functions with error in asm
 # nonmatch=# SELECT id from function where asm like '%error%';
 # nonmatch=# SELECT name,is_asm_func from "function" where asm like '%error%';
+
+
+    @app.cli.command('add-interop')
+    @click.argument('func')
+    def add_interop(func):
+        function = FunctionRepository.get_by_name_internal(func)
+        if function is None:
+            print(f'Function {func} not found')
+            sys.exit(1)
+        function.compile_flags = '-mthumb-interwork'
+        db.session.commit()
+        print('done')

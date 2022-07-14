@@ -17,7 +17,8 @@ public_fields = (
 
 public_fields_single = (
     *public_fields,
-    Function.asm
+    Function.asm,
+    Function.compile_flags
 )
 
 stats_fields = (
