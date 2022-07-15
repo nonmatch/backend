@@ -12,7 +12,7 @@ from models import db
 from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
 from resources.cexplore import CompileResource, PycatResource
-from resources.function import AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, WithCodeFunctionList, WithoutCodeFunctionList
+from resources.function import AllFunctionList, AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
@@ -87,6 +87,7 @@ def generate_token():
 
 api = Api(app)
 api.add_resource(FunctionList, '/functions')
+api.add_resource(AllFunctionList, '/all_functions')
 api.add_resource(AsmFunctionList, '/asm_functions')
 api.add_resource(WithCodeFunctionList, '/with_code')
 api.add_resource(WithoutCodeFunctionList, '/without_code')

@@ -12,6 +12,11 @@ function_schema = FunctionSchema()
 
 class FunctionList(Resource):
     def get(self):
+        functions = FunctionRepository.get_nonmatch()
+        return functions_schema.dump(functions), 200
+
+class AllFunctionList(Resource):
+    def get(self):
         functions = FunctionRepository.get_all()
         return functions_schema.dump(functions), 200
 
