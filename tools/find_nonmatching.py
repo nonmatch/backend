@@ -375,6 +375,9 @@ def update_nonmatching_functions():
             # Run pycat.py on the asm code
             res = requests.post(PYCAT_URL, asm)
             asm = res.text.rstrip()
+            if asm.startswith('#'):
+                # Remove Compiler Explorer comment
+                asm = asm.split('\n', 1)[1]
 
             # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
             score = calculate_score(asm, compiled_asm)
@@ -418,6 +421,7 @@ def update_nonmatching_functions():
             is_equivalent=False,
             parent=None,
             compiled=compiled,
+            comments=''
         )
 
     # TODO Does anything need to be done for functions that switch from ASM_FUNC to NONMATCH? or the other way around?

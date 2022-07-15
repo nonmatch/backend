@@ -79,6 +79,9 @@ def create_cli(app):
         # Run pycat.py on the asm code
         res = requests.post(PYCAT_URL, asm)
         asm = res.text.rstrip()
+        if asm.startswith('#'):
+            # Remove Compiler Explorer comment
+            asm = asm.split('\n', 1)[1]
         function.asm = asm
         db.session.commit()
 
@@ -97,9 +100,13 @@ def create_cli(app):
     @app.cli.command('asm-errors')
     def find_asm_errors():
         print('\nFunctions with errors in asm:\n')
-        functions = Function.query.with_entities(Function.id, Function.name, Function.is_asm_func).filter(Function.asm.like('%error%')).all()
+#        functions = Function.query.with_entities(Function.id, Function.name, Function.is_asm_func).filter(Function.asm.like('%error%')).all()
+        functions = Function.query.filter(Function.asm.like('%Compiler Explorer%')).all()
+
+
         for func in functions:
             print(f'{func.id}\t{"a" if func.is_asm_func else "n"} {func.name}')
+#            update_asm_for_func(func)
 
     @app.cli.command('decomp-me')
     def find_decomp_me_matched():
