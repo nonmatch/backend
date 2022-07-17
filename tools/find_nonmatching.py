@@ -268,8 +268,7 @@ def update_nonmatching_functions():
             continue
 
         create_function = True
-        rename_function = False
-        new_name = ''
+        modified = False
 
         symbol = symbols.find_symbol_by_name(func)
         if symbol is None:
@@ -282,12 +281,17 @@ def update_nonmatching_functions():
             funcs[func] = funcs[addrs[symbol.address]]
             del funcs[addrs[symbol.address]]
             funcs[func].name = func
-            rename_function = True
+            modified = True
 
         # Is the function already in the file
         if func in funcs:
             # TODO check whether the NONMATCH code changed, then update
             # -> look at the latest submission from the repo user (or the only one if we update it?)
+
+            if funcs[func].is_asm_func != is_asm_func:
+                print(f'Change asm state for {func} to {is_asm_func}')
+                funcs[func].is_asm_func = is_asm_func
+                modified = True
 
             submission = (
                 Submission.query.filter_by(function=funcs[func].id, owner=REPO_USER)
