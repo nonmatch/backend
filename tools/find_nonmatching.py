@@ -405,6 +405,9 @@ def update_nonmatching_functions():
             # Run pycat.py on the asm code
             res = requests.post(PYCAT_URL, asm)
             asm = res.text.rstrip()
+            if asm.startswith('#'):
+                # Remove Compiler Explorer comment
+                asm = asm.split('\n', 1)[1]
             funcs[func].asm = asm
 
             # TODO the calculated score here differs from the score computed by monaco diff. Maybe update it when the first person views it?
