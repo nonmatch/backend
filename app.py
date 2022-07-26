@@ -107,8 +107,8 @@ api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
 api.add_resource(MatchResource, '/matches')
 api.add_resource(PrResource, '/pr')
 api.add_resource(StatsResource, '/stats')
-api.add_resource(CompileResource, '/api/compiler/agbpyccC/compile')
-api.add_resource(PycatResource, '/api/compiler/agbpycc/compile')
+api.add_resource(CompileResource, '/api/compiler/agbcc/compile')
+api.add_resource(PycatResource, '/api/compiler/cat/compile')
 
 create_cli(app)
 
