@@ -53,3 +53,7 @@ class SubmissionRepository:
     @staticmethod
     def get(id: int) -> Submission:
         return Submission.query.get_or_404(id, 'Submission not found.')
+
+    @staticmethod
+    def get_latest() -> List[Submission]:
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).order_by(desc(Submission.time_created)).limit(50).all()

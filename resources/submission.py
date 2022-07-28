@@ -16,27 +16,6 @@ submissions_schema = SubmissionSchema(many=True)
 submission_schema = SubmissionSchema()
 
 
-# TODO deprecated, remove?
-class SubmissionList(Resource):
-
-    def post(self):
-        '''Create a new submission'''
-        json = request.get_json(silent=True)
-        try:
-            function: int = json['function']
-            owner: int = json['int']
-            code: str = json['code']
-            score: int = json['score']
-            is_equivalent: bool = json['is_equivalent']
-            parent: int = json.get('parent', 0)
-            compiled: str = json['compiled']
-            SubmissionRepository.create(
-                function, owner, code, score, is_equivalent, parent, compiled)
-        except Exception as e:
-            logging.exception(e)
-            response = jsonify(e.to_dict())
-            response.status_code = e.status_code
-            return response
 
 
 class SubmissionResource(Resource):
@@ -95,3 +74,7 @@ class FunctionSubmissions(Resource):
             return submission, 200
         except Exception as e:
             return error_response(e)
+
+class LatestSubmissionsResource(Resource):
+    def get(self):
+        return submissions_schema.dump(SubmissionRepository.get_latest())

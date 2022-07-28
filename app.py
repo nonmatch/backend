@@ -17,7 +17,7 @@ from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
 from resources.stats import StatsResource
-from resources.submission import FunctionSubmissions, SubmissionList, SubmissionResource
+from resources.submission import FunctionSubmissions, LatestSubmissionsResource, SubmissionResource
 from resources.user import CurrentUserResource, DashboardResource, UserResource
 
 
@@ -96,7 +96,7 @@ api.add_resource(FunctionHeadersResource, '/functions/<function>/headers')
 api.add_resource(FunctionDecompMeResource, '/functions/<function>/decompMe')
 api.add_resource(FunctionLockResource, '/functions/<function>/lock')
 api.add_resource(FunctionUnlockResource, '/functions/<function>/unlock')
-api.add_resource(SubmissionList, '/submissions')
+api.add_resource(LatestSubmissionsResource, '/submissions')
 api.add_resource(SubmissionResource, '/submissions/<submission>')
 api.add_resource(UserResource, '/users/<id>')
 api.add_resource(CurrentUserResource, '/user')
