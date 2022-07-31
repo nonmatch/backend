@@ -56,4 +56,4 @@ class SubmissionRepository:
 
     @staticmethod
     def get_latest() -> List[Submission]:
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).order_by(desc(Submission.time_created)).limit(50).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).order_by(desc(Submission.time_created)).limit(20).all()
