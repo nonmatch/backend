@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, redirect, url_for, request
+from flask import Flask, Response, jsonify, redirect, url_for, request
 from flask_dance.contrib.github import github
 from flask_login import current_user
 from flask_restful import Api
@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from dotenv import load_dotenv
+import requests
 from cli import create_cli
 
 from models import db
@@ -19,6 +20,7 @@ from resources.pr import PrResource
 from resources.stats import StatsResource
 from resources.submission import FunctionSubmissions, LatestSubmissionsResource, SubmissionResource
 from resources.user import CurrentUserResource, DashboardResource, UserResource
+from utils import get_env_variable
 
 
 # Load .env file manually, so the POSTGRESQL variables are available for get_config
@@ -84,6 +86,22 @@ def generate_token():
     token = generate_auth_token(current_user.id)
     return redirect(app.config['FRONTEND_URL'] + '?token=' + token.decode('ascii'))
 
+@app.route('/format', methods=['POST'])
+def format():
+    resp=requests.request(
+    method=request.method,
+    url=get_env_variable('PROXY_FORMATTER_URL'),
+    headers={key: value for (key, value) in request.headers if key != 'Host'},
+    data=request.data,
+    cookies=request.cookies,
+    allow_redirects=False)
+
+    excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+    headers = [(name, value) for (name, value) in resp.raw.headers.items()
+            if name.lower() not in excluded_headers]
+
+    response = Response(resp.content, resp.status_code, headers)
+    return response
 
 api = Api(app)
 api.add_resource(FunctionList, '/functions')
