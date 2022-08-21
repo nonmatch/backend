@@ -1,16 +1,19 @@
 from models import db
 from models.function import Function
+from models.submission import Submission
 from models.user import User
 from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
+from sqlalchemy.sql.expression import desc
+from subprocess import check_call
 from tools.find_nonmatching import PYCAT_URL, extract_USA_asm, get_code, get_symbols, update_nonmatching_functions
 import click
+import os
 import requests
 import sys
-from subprocess import check_call
-import os
 
 from tools.lock import GIT_LOCK, with_lock
+from utils import get_env_variable
 
 def create_cli(app):
     @app.cli.command('create-function')
@@ -164,5 +167,21 @@ def create_cli(app):
         for func in functions:
             func.has_equivalent_try = SubmissionRepository.has_equivalent_submission(func.id)
             print(f'{func.name}: {func.has_equivalent_try}')
+        db.session.commit()
+        print('done')
+
+    @app.cli.command('remove-old-repo-submissions')
+    def remove_old_repo_submissions():
+        functions = Function.query.filter_by(
+            deleted=False, is_submitted=False
+        ).all()
+
+        repo_user = int(get_env_variable('REPO_USER'))
+        for func in functions:
+            submissions = Submission.query.filter_by(owner=repo_user, is_equivalent=False, function=func.id).order_by(Submission.score, desc(Submission.time_created)).offset(1).all()
+            for submission in submissions:
+                # Cannot delete submission which has children.
+                if db.session.query(Submission.id).filter_by(parent=submission.id).first() is None:
+                    db.session.delete(submission)
         db.session.commit()
         print('done')
