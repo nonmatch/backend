@@ -56,7 +56,9 @@ class FunctionRepository:
         return Function.query.filter_by(
             deleted=False, is_matched=False, is_submitted=False
         ).with_entities(
-            *public_fields
+            *public_fields,
+            # Necessary for stats:
+            Function.is_asm_func,
         ).order_by(Function.id).all()
 
     @staticmethod
