@@ -1,4 +1,4 @@
-"""empty message
+"""Add best score for functions
 
 Revision ID: f6b3a059659e
 Revises: 7c3b6a63ffb0

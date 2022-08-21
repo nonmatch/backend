@@ -12,10 +12,12 @@ from cli import create_cli
 from models import db
 from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
+from resources.audit import AuditResource
 from resources.cexplore import CompileResource, PycatResource
 from resources.function import AllFunctionList, AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
+from resources.meta import MetaSubmissionResource
 from resources.pr import PrResource
 from resources.stats import StatsResource
 from resources.submission import FunctionSubmissions, LatestSubmissionsResource, SubmissionResource
@@ -39,8 +41,9 @@ db.init_app(app)
 migrate = Migrate(app, db)
 login_manager.init_app(app)
 
-with app.app_context():
-    db.create_all()
+# The following lines prevented alembic from creating migrations for new tables.
+# with app.app_context():
+#     db.create_all()
 
 # Fix so that https is still correctly identified when passing through ngrok proxy tunnel
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -127,6 +130,7 @@ api.add_resource(PrResource, '/pr')
 api.add_resource(StatsResource, '/stats')
 api.add_resource(CompileResource, '/api/compiler/agbcc/compile')
 api.add_resource(PycatResource, '/api/compiler/cat/compile')
+api.add_resource(AuditResource, '/audit')
 
 create_cli(app)
 

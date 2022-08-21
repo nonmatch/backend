@@ -73,3 +73,4 @@ class UserRepository:
         user = User(username=username, email=email)
         db.session.add(user)
         db.session.commit()
+        return user

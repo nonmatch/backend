@@ -1,7 +1,7 @@
 """Add avatar and email
 
 Revision ID: 7b10a01330fa
-Revises: 
+Revises: 710886277d4f
 Create Date: 2021-12-30 22:57:27.241725
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '7b10a01330fa'
-down_revision = None
+down_revision = '710886277d4f'
 branch_labels = None
 depends_on = None
 
