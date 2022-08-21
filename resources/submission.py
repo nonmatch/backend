@@ -3,6 +3,7 @@ from flask_login import current_user
 from flask_migrate import current
 from flask_restful import Resource
 from models.user import User
+from repositories.audit import AuditRepository
 from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 from repositories.user import UserRepository
@@ -22,6 +23,17 @@ class SubmissionResource(Resource):
     def get(self, submission: int):
         return submission_schema.dump(SubmissionRepository.get(submission))
 
+    def delete(self, submission: int):
+        subm = SubmissionRepository.get(submission)
+        if not subm or subm.is_deleted:
+            return error_message_response('Submission not found.')
+        if current_user is None or not current_user.is_authenticated:
+            return error_message_response('Not logged in.')
+        if subm.owner != current_user.id:
+            return error_message_response('This submission does not belong to you.')
+        AuditRepository.create(current_user.id, f'Deleted submission {submission}')
+        SubmissionRepository.delete(subm)
+        return 'ok'
 
 class FunctionSubmissions(Resource):
     def get(self, function: int):

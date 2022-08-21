@@ -1,7 +1,6 @@
 from . import db
 from .user import User
-from sqlalchemy.sql import expression
-from sqlalchemy.sql import func
+from sqlalchemy.sql import expression, func
 
 
 class Function(db.Model):

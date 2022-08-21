@@ -17,7 +17,6 @@ from resources.cexplore import CompileResource, PycatResource
 from resources.function import AllFunctionList, AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
-from resources.meta import MetaSubmissionResource
 from resources.pr import PrResource
 from resources.stats import StatsResource
 from resources.submission import FunctionSubmissions, LatestSubmissionsResource, SubmissionResource

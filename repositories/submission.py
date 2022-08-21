@@ -36,24 +36,29 @@ class SubmissionRepository:
     @staticmethod
     def get_for_function(function: int) -> List[Submission]:
         '''Get all submissions for a function'''
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score, desc(Submission.time_created)).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function,is_deleted=False).order_by(Submission.score, desc(Submission.time_created)).all()
 
     @staticmethod
     def get_matched_for_function(function: int) -> List[Submission]:
         '''Get all submissions for a function with a score of 0'''
-        return Submission.query.filter_by(score=0).with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function).order_by(Submission.score, desc(Submission.time_created)).all()
+        return Submission.query.filter_by(score=0).with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function,is_deleted=False).order_by(Submission.score, desc(Submission.time_created)).all()
 
     @staticmethod
     def get_for_user(user: int) -> List[Submission]:
         '''Get all non submitted submissions for a user'''
         valid_functions = Function.query.with_entities(
             Function.id).filter_by(deleted=False, is_submitted=False)
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(owner=user).filter(Submission.function.in_(valid_functions)).order_by(desc(Submission.time_created)).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(owner=user,is_deleted=False).filter(Submission.function.in_(valid_functions)).order_by(desc(Submission.time_created)).all()
 
     @staticmethod
     def get(id: int) -> Submission:
-        return Submission.query.get_or_404(id, 'Submission not found.')
+        return Submission.query.filter_by(is_deleted=False,id=id).first_or_404('Submission not found.')
 
     @staticmethod
     def get_latest() -> List[Submission]:
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).order_by(desc(Submission.time_created)).limit(20).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(is_deleted=False).order_by(desc(Submission.time_created)).limit(20).all()
+
+    @staticmethod
+    def delete(subm: Submission) -> None:
+        subm.is_deleted = True
+        db.session.commit()

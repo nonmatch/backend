@@ -1,7 +1,7 @@
 from . import db
 from .function import Function
 from .user import User
-from sqlalchemy.sql import func
+from sqlalchemy.sql import expression, func
 
 
 class Submission(db.Model):
@@ -17,3 +17,5 @@ class Submission(db.Model):
     time_updated = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     compiled = db.Column(db.Text)
     comments = db.Column(db.Text)
+    is_deleted = db.Column(
+        db.Boolean, server_default=expression.false(), nullable=False)
