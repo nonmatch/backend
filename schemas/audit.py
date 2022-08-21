@@ -5,4 +5,4 @@ class AuditSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Audit
         load_instance = True
-        include_fk = False
+        include_fk = True

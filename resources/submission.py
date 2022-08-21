@@ -90,3 +90,21 @@ class FunctionSubmissions(Resource):
 class LatestSubmissionsResource(Resource):
     def get(self):
         return submissions_schema.dump(SubmissionRepository.get_latest())
+
+class EquivalentResource(Resource):
+    def post(self, submission: int):
+        data = request.get_json()
+        if data is None:
+            return error_message_response('Invalid request')
+        try:
+            if current_user is None or not current_user.is_authenticated:
+                return error_message_response('Not logged in.')
+            subm = SubmissionRepository.get(submission)
+            if not subm:
+                return error_message_response('Submission does not exist.')
+            is_equivalent = data['is_equivalent'] == 'true'
+            AuditRepository.create(current_user.id, f'Set submission {submission} to equivalent: {is_equivalent}')
+            SubmissionRepository.set_equivalent(subm, is_equivalent)
+            return 'ok'
+        except Exception as e:
+            return error_response(e)

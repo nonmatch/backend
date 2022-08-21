@@ -19,7 +19,7 @@ from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
 from resources.stats import StatsResource
-from resources.submission import FunctionSubmissions, LatestSubmissionsResource, SubmissionResource
+from resources.submission import EquivalentResource, FunctionSubmissions, LatestSubmissionsResource, SubmissionResource
 from resources.user import CurrentUserResource, DashboardResource, UserResource
 from utils import get_env_variable
 
@@ -118,6 +118,7 @@ api.add_resource(FunctionLockResource, '/functions/<function>/lock')
 api.add_resource(FunctionUnlockResource, '/functions/<function>/unlock')
 api.add_resource(LatestSubmissionsResource, '/submissions')
 api.add_resource(SubmissionResource, '/submissions/<submission>')
+api.add_resource(EquivalentResource, '/submissions/<submission>/equivalent')
 api.add_resource(UserResource, '/users/<id>')
 api.add_resource(CurrentUserResource, '/user')
 api.add_resource(DashboardResource, '/user/functions')

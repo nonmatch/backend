@@ -36,12 +36,12 @@ class SubmissionRepository:
     @staticmethod
     def get_for_function(function: int) -> List[Submission]:
         '''Get all submissions for a function'''
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function,is_deleted=False).order_by(Submission.score, desc(Submission.time_created)).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function,is_deleted=False).order_by(desc(Submission.is_equivalent), Submission.score, desc(Submission.time_created)).all()
 
     @staticmethod
     def get_matched_for_function(function: int) -> List[Submission]:
         '''Get all submissions for a function with a score of 0'''
-        return Submission.query.filter_by(score=0).with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function,is_deleted=False).order_by(Submission.score, desc(Submission.time_created)).all()
+        return Submission.query.filter_by(score=0, is_deleted=False).with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(function=function,is_deleted=False).order_by(Submission.score, desc(Submission.time_created)).all()
 
     @staticmethod
     def get_for_user(user: int) -> List[Submission]:
@@ -61,4 +61,9 @@ class SubmissionRepository:
     @staticmethod
     def delete(subm: Submission) -> None:
         subm.is_deleted = True
+        db.session.commit()
+
+    @staticmethod
+    def set_equivalent(subm: Submission, is_equivalent: bool) -> None:
+        subm.is_equivalent = is_equivalent
         db.session.commit()
