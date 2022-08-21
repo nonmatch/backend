@@ -83,6 +83,7 @@ class FunctionSubmissions(Resource):
 
             submission = SubmissionRepository.create(
                 function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'], data['comments'])
+            FunctionRepository.set_has_equivalent_try(function, SubmissionRepository.has_equivalent_submission(function))
             return submission, 200
         except Exception as e:
             return error_response(e)
@@ -105,6 +106,7 @@ class EquivalentResource(Resource):
             is_equivalent = data['is_equivalent'] == 'true'
             AuditRepository.create(current_user.id, f'Set submission {submission} to equivalent: {is_equivalent}')
             SubmissionRepository.set_equivalent(subm, is_equivalent)
+            FunctionRepository.set_has_equivalent_try(subm.function, SubmissionRepository.has_equivalent_submission(subm.function))
             return 'ok'
         except Exception as e:
             return error_response(e)

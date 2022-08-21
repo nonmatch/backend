@@ -67,3 +67,8 @@ class SubmissionRepository:
     def set_equivalent(subm: Submission, is_equivalent: bool) -> None:
         subm.is_equivalent = is_equivalent
         db.session.commit()
+
+    @staticmethod
+    def has_equivalent_submission(function: int) -> bool:
+        '''Does the function has an equivalent submission?'''
+        return db.session.query(Submission.query.filter_by(function=function, is_deleted=False, is_equivalent=True).exists()).scalar()

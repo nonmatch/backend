@@ -2,6 +2,7 @@ from models import db
 from models.function import Function
 from models.user import User
 from repositories.function import FunctionRepository
+from repositories.submission import SubmissionRepository
 from tools.find_nonmatching import PYCAT_URL, extract_USA_asm, get_code, get_symbols, update_nonmatching_functions
 import click
 import requests
@@ -150,5 +151,18 @@ def create_cli(app):
             print(f'Function {func} not found')
             sys.exit(1)
         function.compile_flags = '-mthumb-interwork'
+        db.session.commit()
+        print('done')
+
+
+    @app.cli.command('update-equivalent')
+    def update_equivalent():
+        functions = Function.query.filter_by(
+            deleted=False, is_submitted=False
+        ).all()
+
+        for func in functions:
+            func.has_equivalent_try = SubmissionRepository.has_equivalent_submission(func.id)
+            print(f'{func.name}: {func.has_equivalent_try}')
         db.session.commit()
         print('done')

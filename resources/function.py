@@ -36,6 +36,16 @@ class WithoutCodeFunctionList(Resource):
         functions = FunctionRepository.get_all_without_code()
         return functions_schema.dump(functions), 200
 
+class EquivalentFunctionList(Resource):
+    def get(self):
+        functions = FunctionRepository.get_all_equivalent()
+        return functions_schema.dump(functions), 200
+
+class NonEquivalentFunctionList(Resource):
+    def get(self):
+        functions = FunctionRepository.get_all_non_equivalent()
+        return functions_schema.dump(functions), 200
+
 
 class FunctionResource(Resource):
     def get(self, function):

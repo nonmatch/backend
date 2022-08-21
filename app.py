@@ -14,7 +14,7 @@ from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
 from resources.audit import AuditResource
 from resources.cexplore import CompileResource, PycatResource
-from resources.function import AllFunctionList, AsmFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, WithCodeFunctionList, WithoutCodeFunctionList
+from resources.function import AllFunctionList, AsmFunctionList, EquivalentFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionUnlockResource, NonEquivalentFunctionList, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
@@ -111,6 +111,8 @@ api.add_resource(AllFunctionList, '/all_functions')
 api.add_resource(AsmFunctionList, '/asm_functions')
 api.add_resource(WithCodeFunctionList, '/with_code')
 api.add_resource(WithoutCodeFunctionList, '/without_code')
+api.add_resource(EquivalentFunctionList, '/equivalent')
+api.add_resource(NonEquivalentFunctionList, '/non_equivalent')
 api.add_resource(FunctionResource, '/functions/<function>')
 api.add_resource(FunctionHeadersResource, '/functions/<function>/headers')
 api.add_resource(FunctionDecompMeResource, '/functions/<function>/decompMe')

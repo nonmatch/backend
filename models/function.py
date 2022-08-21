@@ -31,3 +31,6 @@ class Function(db.Model):
     decomp_me_matched = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
     # Additional compile flags
     compile_flags = db.Column(db.String(128))
+    # Has a submission that is equivalent
+    has_equivalent_try = db.Column(
+        db.Boolean, server_default=expression.false(), nullable=False)

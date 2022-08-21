@@ -54,14 +54,9 @@ class FunctionRepository:
     @staticmethod
     def get_all() -> List[Function]:
         return Function.query.filter_by(
-            deleted=False, is_submitted=False
+            deleted=False, is_matched=False, is_submitted=False
         ).with_entities(
-            Function.id,
-            Function.name,
-            Function.file,
-            Function.size,
-            Function.is_asm_func,
-            Function.is_matched
+            *public_fields
         ).order_by(Function.id).all()
 
     @staticmethod
@@ -92,6 +87,22 @@ class FunctionRepository:
     def get_all_without_code() -> List[Function]:
         return Function.query.filter_by(
             deleted=False, is_matched=False, is_submitted=False, has_code_try=False
+        ).with_entities(
+            *public_fields
+        ).order_by(Function.id).all()
+
+    @staticmethod
+    def get_all_equivalent() -> List[Function]:
+        return Function.query.filter_by(
+            deleted=False, is_matched=False, is_submitted=False, has_equivalent_try=True
+        ).with_entities(
+            *public_fields
+        ).order_by(Function.id).all()
+
+    @staticmethod
+    def get_all_non_equivalent() -> List[Function]:
+        return Function.query.filter_by(
+            deleted=False, is_matched=False, is_submitted=False, has_equivalent_try=False
         ).with_entities(
             *public_fields
         ).order_by(Function.id).all()
@@ -135,4 +146,10 @@ class FunctionRepository:
     @staticmethod
     def unlock(function: Function):
         function.locked_by = None
+        db.session.commit()
+
+    @staticmethod
+    def set_has_equivalent_try(id: int, has_equivalent_try: bool) -> None:
+        func = FunctionRepository.get_internal(id)
+        func.has_equivalent_try = has_equivalent_try
         db.session.commit()
