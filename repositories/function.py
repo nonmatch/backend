@@ -13,7 +13,10 @@ public_fields = (
     Function.time_created,
     Function.decomp_me_scratch,
     Function.decomp_me_matched,
-    Function.locked_by)
+    Function.locked_by,
+    Function.is_asm_func,
+    Function.has_equivalent_try
+)
 
 public_fields_single = (
     *public_fields,
@@ -59,6 +62,19 @@ class FunctionRepository:
             *public_fields,
             # Necessary for stats:
             Function.is_asm_func,
+        ).order_by(Function.id).all()
+
+    @staticmethod
+    def get_stats() -> List[Function]:
+        return Function.query.filter_by(
+            deleted=False, is_submitted=False
+        ).with_entities(
+            Function.id,
+            Function.name,
+            Function.file,
+            Function.size,
+            Function.is_asm_func,
+            Function.is_matched
         ).order_by(Function.id).all()
 
     @staticmethod
