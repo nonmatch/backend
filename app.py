@@ -14,7 +14,7 @@ from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
 from resources.audit import AuditResource
 from resources.cexplore import CompileResource, PycatResource
-from resources.function import AllFunctionList, AsmFunctionList, EquivalentFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionStatsList, FunctionUnlockResource, NonEquivalentFunctionList, WithCodeFunctionList, WithoutCodeFunctionList
+from resources.function import AllFunctionList, AsmFunctionList, EquivalentFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionSearchResource, FunctionStatsList, FunctionUnlockResource, NonEquivalentFunctionList, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
 from resources.pr import PrResource
@@ -134,6 +134,7 @@ api.add_resource(StatsResource, '/stats')
 api.add_resource(CompileResource, '/api/compiler/agbcc/compile')
 api.add_resource(PycatResource, '/api/compiler/cat/compile')
 api.add_resource(AuditResource, '/audit')
+api.add_resource(FunctionSearchResource, '/search')
 
 create_cli(app)
 

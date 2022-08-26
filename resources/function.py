@@ -100,3 +100,19 @@ class FunctionUnlockResource(Resource):
 
         FunctionRepository.unlock(func)
         return 'ok'
+
+class FunctionSearchResource(Resource):
+    def post(self):
+        data = request.get_json()
+        if data is None:
+            return error_message_response('Invalid request')
+        try:
+            if len(data['name']) < 5:
+                return error_message_response('Search string less than five characters.')
+            if '%' in data['name']:
+                return error_message_response('Invalid request')
+
+            functions = FunctionRepository.search(data['name'])
+            return functions_schema.dump(functions), 200
+        except Exception as e:
+            return error_response(e)

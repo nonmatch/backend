@@ -171,3 +171,9 @@ class FunctionRepository:
         func = FunctionRepository.get_internal(id)
         func.has_equivalent_try = has_equivalent_try
         db.session.commit()
+
+    @staticmethod
+    def search(name: str) -> List[Function]:
+        return Function.query.with_entities(
+            *public_fields
+        ).filter(Function.name.like(f'%{name}%')).limit(10).all()
