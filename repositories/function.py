@@ -74,7 +74,8 @@ class FunctionRepository:
             Function.file,
             Function.size,
             Function.is_asm_func,
-            Function.is_matched
+            Function.is_matched,
+            Function.best_score
         ).order_by(Function.id).all()
 
     @staticmethod

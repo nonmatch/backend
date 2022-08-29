@@ -30,7 +30,7 @@ from config import get_config
 
 import logging
 
-logging.basicConfig(filename='error.log', level=logging.DEBUG)
+logging.basicConfig(filename='error.log', level=logging.INFO)
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.config.from_object(get_config(None))
