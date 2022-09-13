@@ -6,11 +6,12 @@ from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 from sqlalchemy.sql.expression import desc
 from subprocess import check_call
-from tools.find_nonmatching import PYCAT_URL, extract_USA_asm, get_code, get_symbols, update_nonmatching_functions
+from tools.find_nonmatching import extract_USA_asm, get_code, get_symbols, update_nonmatching_functions
 import click
 import os
 import requests
 import sys
+from flask import current_app
 
 from tools.lock import GIT_LOCK, with_lock
 from utils import get_env_variable
@@ -81,7 +82,7 @@ def create_cli(app):
 
         asm = extract_USA_asm(asm)
         # Run pycat.py on the asm code
-        res = requests.post(PYCAT_URL, asm)
+        res = requests.post(current_app.config['PYCAT_URL'], asm)
         asm = res.text.rstrip()
         if asm.startswith('#'):
             # Remove Compiler Explorer comment

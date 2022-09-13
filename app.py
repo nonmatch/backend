@@ -4,6 +4,7 @@ from flask_login import current_user
 from flask_restful import Api
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_socketio import SocketIO
 
 from dotenv import load_dotenv
 import requests
@@ -17,17 +18,18 @@ from resources.cexplore import CompileResource, PycatResource
 from resources.function import AllFunctionList, AsmFunctionList, EquivalentFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionSearchResource, FunctionStatsList, FunctionUnlockResource, NonEquivalentFunctionList, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
-from resources.pr import PrResource
 from resources.stats import StatsResource
 from resources.submission import EquivalentResource, FunctionSubmissions, LatestSubmissionsResource, SubmissionResource
 from resources.user import CurrentUserResource, DashboardResource, UserResource
 from utils import get_env_variable
 
-
 # Load .env file manually, so the POSTGRESQL variables are available for get_config
 load_dotenv()
 from config import get_config
 
+from tasks import celery
+from resources.pr import PrResource, PrStatusResource
+from tasks.flask_celery import init_celery
 import logging
 
 logging.basicConfig(filename='error.log', level=logging.INFO)
@@ -40,13 +42,16 @@ db.init_app(app)
 migrate = Migrate(app, db)
 login_manager.init_app(app)
 
+init_celery(celery, app)
+
+socketio = SocketIO(app, message_queue=app.config['REDIS_URI'], cors_allowed_origins=['http://localhost:3000', 'https://nonmatch.netlify.app'])
+
 # The following lines prevented alembic from creating migrations for new tables.
 # with app.app_context():
 #     db.create_all()
 
 # Fix so that https is still correctly identified when passing through ngrok proxy tunnel
 # app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-
 
 @app.route('/')
 def homepage():
@@ -130,14 +135,15 @@ api.add_resource(LogoutResource, '/oauth/logout')
 api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
 api.add_resource(MatchResource, '/matches')
 api.add_resource(PrResource, '/pr')
+api.add_resource(PrStatusResource, '/pr/<id>')
 api.add_resource(StatsResource, '/stats')
 api.add_resource(CompileResource, '/api/compiler/agbcc/compile')
 api.add_resource(PycatResource, '/api/compiler/cat/compile')
 api.add_resource(AuditResource, '/audit')
 api.add_resource(FunctionSearchResource, '/search')
 
+# Create CLI
 create_cli(app)
 
 if __name__ == '__main__':
-
-    app.run(debug=True)
+    socketio.run(app, debug=True)

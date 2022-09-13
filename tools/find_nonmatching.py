@@ -14,16 +14,12 @@ from sqlalchemy import desc
 from tools.symbols import SymbolList, load_symbols_from_elf
 from tools.symbols_from_map import load_symbols_from_map
 import difflib
-
-TMC_REPO = os.getenv("TMC_REPO")
-REPO_USER = os.getenv("REPO_USER")
-PYCAT_URL = os.getenv("PYCAT_URL")
-CEXPLORE_URL = os.getenv("CEXPLORE_URL")
+from flask import current_app
 
 
 def collect_non_matching_funcs():
     result = []
-    src_folder = os.path.join(TMC_REPO, "src")
+    src_folder = os.path.join(current_app.config['TMC_REPO'], "src")
     for root, dirs, files in os.walk(src_folder):
         for file in files:
             if file.endswith(".c"):
@@ -44,7 +40,7 @@ def collect_non_matching_funcs():
 
 def collect_asm_funcs():
     result = []
-    src_folder = os.path.join(TMC_REPO, "src")
+    src_folder = os.path.join(current_app.config['TMC_REPO'], "src")
     for root, dirs, files in os.walk(src_folder):
         for file in files:
             if file.endswith(".c"):
@@ -65,7 +61,7 @@ def collect_asm_funcs():
 
 def find_inc_file(name: str) -> Optional[str]:
     filename = name + ".inc"
-    search_path = os.path.join(TMC_REPO, "asm", "non_matching")
+    search_path = os.path.join(current_app.config['TMC_REPO'], "asm", "non_matching")
     for root, dirs, files in os.walk(search_path):
         if filename in files:
             return os.path.join(root, filename)
@@ -74,7 +70,7 @@ def find_inc_file(name: str) -> Optional[str]:
 
 def find_source_file(name: str, symbols: SymbolList) -> Optional[str]:
     # # Get the source file from tmc.map
-    # with open(os.path.join(TMC_REPO, "tmc.map"), "r") as f:
+    # with open(os.path.join(current_app.config['TMC_REPO'], "tmc.map"), "r") as f:
     #     current_file = None
     #     for line in f:
     #         if line.startswith(" .text"):
@@ -174,13 +170,13 @@ def get_code(name: str, include_function: bool, symbols: SymbolList) -> Tuple[bo
     src_file = find_source_file(name, symbols)
     if src_file is None:
         return (True, f"Source file for {name} not found in tmc.map.", "", "")
-    src_file = os.path.join(TMC_REPO, src_file)
+    src_file = os.path.join(current_app.config['TMC_REPO'], src_file)
 
     if not os.path.isfile(src_file):
         return (True, f"{src_file} is not a file.", "", "")
 
     inc_path = inc_file.replace("\\", "/")
-    inc_path = inc_path.replace(TMC_REPO + "/", "")
+    inc_path = inc_path.replace(current_app.config['TMC_REPO'] + "/", "")
     (src, signature) = extract_nonmatching_section(inc_path, src_file, include_function)
     if src is None:
         return (
@@ -219,7 +215,7 @@ ignored_functions = [
 
 def get_symbols() -> SymbolList:
     symbols = load_symbols_from_elf()
-    map_symbols = load_symbols_from_map(os.path.join(TMC_REPO, "tmc.map"))
+    map_symbols = load_symbols_from_map(os.path.join(current_app.config['TMC_REPO'], "tmc.map"))
 
     # elf currently only reads the functions from c files from the DWARF information
     # read asm files and variables from the .map
@@ -294,7 +290,7 @@ def update_nonmatching_functions():
                 modified = True
 
             submission = (
-                Submission.query.filter_by(function=funcs[func].id, owner=REPO_USER)
+                Submission.query.filter_by(function=funcs[func].id, owner=current_app.config['REPO_USER'])
                 .order_by(desc(Submission.time_created))
                 .limit(1)
                 .first()
@@ -322,7 +318,7 @@ def update_nonmatching_functions():
 
         # Compile, so that we can calculate the score
         res = requests.post(
-            CEXPLORE_URL,
+            current_app.config['CEXPLORE_URL'],
             headers={
                 "accept": "application/json, text/javascript, */*; q=0.01",
                 "content-type": "application/json",
@@ -377,7 +373,7 @@ def update_nonmatching_functions():
         if create_function:
             print(f"Creating {func}")
             # Run pycat.py on the asm code
-            res = requests.post(PYCAT_URL, asm)
+            res = requests.post(current_app.config['PYCAT_URL'], asm)
             asm = res.text.rstrip()
             if asm.startswith('#'):
                 # Remove Compiler Explorer comment
@@ -403,7 +399,7 @@ def update_nonmatching_functions():
         else:
             function_id = funcs[func].id
             # Run pycat.py on the asm code
-            res = requests.post(PYCAT_URL, asm)
+            res = requests.post(current_app.config['PYCAT_URL'], asm)
             asm = res.text.rstrip()
             if asm.startswith('#'):
                 # Remove Compiler Explorer comment
@@ -422,7 +418,7 @@ def update_nonmatching_functions():
 
         SubmissionRepository.create(
             function=function_id,
-            owner=REPO_USER,
+            owner=current_app.config['REPO_USER'],
             code=src,
             score=score,
             is_equivalent=False,
@@ -457,12 +453,12 @@ def store_code(
     src_file = find_source_file(name, symbols)
     if src_file is None:
         return (True, f"Source file for {name} not found in tmc.map.")
-    src_file = os.path.join(TMC_REPO, src_file)
+    src_file = os.path.join(current_app.config['TMC_REPO'], src_file)
 
     if not os.path.isfile(src_file):
         return (True, f"{src_file} is not a file.")
 
-    inc_path = inc_file.replace(TMC_REPO + "/", "")
+    inc_path = inc_file.replace(current_app.config['TMC_REPO'] + "/", "")
 
     (headers, data) = read_file_split_headers(src_file)
 
@@ -622,12 +618,12 @@ def extract_USA_asm(asm: str) -> str:
 def get_headers_code(function_name: str) -> str:
     # symbols = get_symbols()
     # Only use map symbols because faster
-    symbols = load_symbols_from_map(os.path.join(TMC_REPO, "tmc.map"))
+    symbols = load_symbols_from_map(os.path.join(current_app.config['TMC_REPO'], "tmc.map"))
 
     src_file = find_source_file(function_name, symbols)
     if src_file is None:
         raise Exception(f"Source file for {function_name} not found in tmc.map.")
-    src_file = os.path.join(TMC_REPO, src_file)
+    src_file = os.path.join(current_app.config['TMC_REPO'], src_file)
 
     if not os.path.isfile(src_file):
         raise Exception(f"{src_file} is not a file.")

@@ -12,10 +12,10 @@ class Config(object):
     # SQLAlchemy
     uri_template = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'
     SQLALCHEMY_DATABASE_URI = uri_template.format(
-        user=POSTGRES_USER,
-        pw=POSTGRES_PASSWORD,
-        url=POSTGRES_URL,
-        db=POSTGRES_DB)
+        user = POSTGRES_USER,
+        pw = POSTGRES_PASSWORD,
+        url = POSTGRES_URL,
+        db = POSTGRES_DB)
 
     # Silence the deprecation warning
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -23,8 +23,20 @@ class Config(object):
     # API settings
     API_PAGINATION_PER_PAGE = 10
 
-    SECRET_KEY=get_env_variable('SECRET_KEY')
-    FRONTEND_URL=get_env_variable('FRONTEND_URL')
+    SECRET_KEY = get_env_variable('SECRET_KEY')
+    FRONTEND_URL = get_env_variable('FRONTEND_URL')
+
+    # PR settings
+    TMC_REPO = get_env_variable('TMC_REPO')
+    REPO_USER = get_env_variable('REPO_USER')
+    PYCAT_URL = get_env_variable('PYCAT_URL')
+    CEXPLORE_URL = get_env_variable('CEXPLORE_URL')
+
+    REDIS_URI = get_env_variable('REDIS_URI')
+    CELERY_CONFIG = {
+        'broker_url': 'redis://localhost',
+        'result_backend': 'redis://localhost'
+    }
 
 
 class DevelopmentConfig(Config):

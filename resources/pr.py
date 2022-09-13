@@ -7,8 +7,11 @@ from models.function import Function
 from models.pr import Pr
 from models.user import User
 from repositories.function import FunctionRepository
+from repositories.pr import PrRepository
 from repositories.submission import SubmissionRepository
 from subprocess import check_call, check_output
+from schemas.pr import PrSchema
+from tasks.pr_task import pr_task
 from tools.find_nonmatching import split_code, store_code
 from tools.lock import GIT_LOCK, obtain_lock, release_lock
 from utils import error_message_response, error_response
@@ -18,6 +21,7 @@ import os
 TMC_REPO = os.getenv('TMC_REPO')
 PR_URL = os.getenv('PR_URL')
 
+pr_schema = PrSchema()
 
 class PrResource(Resource):
     def get(self):
@@ -40,6 +44,9 @@ class PrResource(Resource):
             if data['title'] == '':
                 return error_message_response('Need to enter a title.')
 
+            if len(data['selected']) == 0:
+                return error_message_response('Need to submit at least one submission.')
+
             submissions = []
             functions = []
             # Check that all submissions have a score of zero and that they have not been submitted yet
@@ -57,87 +64,16 @@ class PrResource(Resource):
                 if function.is_submitted:
                     return error_message_response(f'A Pull Request for function {function.name} was already submitted.')
 
-            obtained_lock = False
-            try:
-                obtained_lock = obtain_lock(db.session, GIT_LOCK , 1)
-                if not obtained_lock:
-                    return error_message_response(f'Another git operation is in progress. Please try again in a minute.')
-                pr = Pr(title=data['title'], text=data['text'], creator=current_user.id,
-                        functions=', '.join(map(lambda x: str(x), data['selected'])))
-                db.session.add(pr)
-                db.session.commit()
+            pr = Pr(title=data['title'], text=data['text'], creator=current_user.id,
+                    functions=', '.join(map(lambda x: str(x), data['selected'])))
+            db.session.add(pr)
+            db.session.commit()
 
-                branch = f'patch-{pr.id}'
-                # Set up the commit in the git repository
-                check_call(['git', 'checkout', 'master'], cwd=TMC_REPO)
-                check_call(['git', 'reset', '--hard', 'HEAD'], cwd=TMC_REPO)
-                check_call(['git', 'pull', 'upstream', 'master'], cwd=TMC_REPO)
-                check_call(['git', 'checkout', '-b', branch], cwd=TMC_REPO)
-
-                for i in range(len(submissions)):
-                    submission = submissions[i]
-                    function = functions[i]
-                    username = 'anonymous'
-                    email = ''
-                    if submission.owner is not None and submission.owner != 0:
-                        user = User.query.with_entities(User.username, User.email).filter_by(
-                            id=submission.owner).first_or_404()
-                        if user is not None:
-                            username = user.username
-                            email = user.email
-                        else:
-                            logging.error(f'Could not find user {user}')
-
-                    # Write the code to the file
-                    (includes, header, src) = split_code(submission.code)
-                    (err, msg) = store_code(function.name,
-                                            includes, header, src, submission.score == 0)
-                    if err:
-                        return error_message_response(msg)
-
-                    check_call(['git', 'config', 'user.name',
-                            username], cwd=TMC_REPO)
-                    check_call(
-                        ['git', 'config', 'user.email', email], cwd=TMC_REPO)
-
-                    # Format to avoid
-                    check_call(['../format.sh'], cwd=TMC_REPO)
-
-                    check_call(['git', 'add', '.'], cwd=TMC_REPO)
-                    # TODO remove allow empty?
-                    check_call(
-                        ['git', 'commit', '-m', f'Match {function.name}', '--allow-empty'], cwd=TMC_REPO)
-
-                check_call(['git', 'push', '-u', 'origin',
-                        branch, '-f'], cwd=TMC_REPO)
-
-                arguments = {
-                    'title': data['title'],
-                    'head': f'nonmatch:{branch}',
-                    'base': 'master',
-                    # Only the nonmatch user can grant modifying, see https://github.com/backstrokeapp/server/issues/46#issuecomment-272597511
-                    'maintainer_can_modify': False,
-                }
-
-                if 'text' in data and data['text'] != '':
-                    arguments['body'] = data['text']
-                res = github.post(PR_URL, json=arguments)
-
-                data = res.json()
-                if 'message' in data:
-                    logging.error(data)
-                    return error_message_response(data['message'])
-
-                for function in functions:
-                    function.is_submitted = True
-
-                pr.url = data['html_url']
-                pr.functions = ', '.join(map(lambda f: f.name, functions))
-                db.session.commit()
-
-                return {'url': data['html_url']}
-            finally:
-                if obtain_lock:
-                    release_lock(db.session, GIT_LOCK, 1)
+            pr_task.delay(pr.id)
+            return {'id': pr.id}
         except Exception as e:
             return error_response(e)
+
+class PrStatusResource(Resource):
+    def get(self, id: int):
+        return pr_schema.dump(PrRepository.get(id))
