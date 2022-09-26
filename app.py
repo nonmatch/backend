@@ -22,6 +22,7 @@ from resources.stats import StatsResource
 from resources.submission import EquivalentResource, FunctionSubmissions, LatestSubmissionsResource, SubmissionResource
 from resources.user import CurrentUserResource, DashboardResource, UserResource
 from utils import get_env_variable
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Load .env file manually, so the POSTGRESQL variables are available for get_config
 load_dotenv()
@@ -51,7 +52,7 @@ socketio = SocketIO(app, message_queue=app.config['REDIS_URI'], cors_allowed_ori
 #     db.create_all()
 
 # Fix so that https is still correctly identified when passing through ngrok proxy tunnel
-# app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.route('/')
 def homepage():
