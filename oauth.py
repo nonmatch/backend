@@ -32,9 +32,13 @@ def github_logged_in(blueprint, token):
         username = account_info['login']
 
         query = User.query.filter_by(username=username)
+        user = None
         try:
             user = query.first()
         except NoResultFound:
+            pass
+
+        if user is None:
             avatar = account_info['avatar_url']
             email = ''
             res = github.get('/user/public_emails')
