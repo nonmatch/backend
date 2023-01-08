@@ -498,13 +498,13 @@ def store_code(
         )
     else:
         match = re.search(
-            r"ASM_FUNC\(\"" + re.escape(inc_path) + r"\", ?(.*?)\)$",
+            r"ASM_FUNC\(\"" + re.escape(inc_path) + r"\", ?(.*?)\);?$",
             "".join(data),
             re.MULTILINE | re.DOTALL,
         )
         if match:
             data = re.sub(
-                r"ASM_FUNC\(\"" + re.escape(inc_path) + r"\", ?(.*?)\)$",
+                r"ASM_FUNC\(\"" + re.escape(inc_path) + r"\", ?(.*?)\);?$",
                 src,
                 "".join(data),
                 flags=re.MULTILINE | re.DOTALL,
