@@ -1,11 +1,11 @@
 from . import db
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from flask_login import UserMixin, LoginManager
-from itsdangerous import (
-    URLSafeTimedSerializer as Serializer, BadSignature, SignatureExpired)
 from sqlalchemy.sql import func
 import logging
 import os
+import jwt
+import datetime
 
 
 class User(UserMixin, db.Model):
@@ -32,21 +32,31 @@ def load_user(user_id):
 
 
 def generate_auth_token(user_id, expiration=604800):
-    s = Serializer(os.getenv('SECRET_KEY'), expires_in=expiration)
-    return s.dumps({'id': user_id})
+    reset_token = jwt.encode(
+        {
+            'id': user_id,
+            'exp': datetime.datetime.now(tz=datetime.timezone.utc)
+                    + datetime.timedelta(seconds=expiration)
+        },
+        os.getenv('SECRET_KEY'),
+        algorithm='HS256'
+    )
+    return reset_token
 
 
 def verify_auth_token(token):
-    s = Serializer(os.getenv('SECRET_KEY'))
     try:
-        data = s.loads(token)
-    except SignatureExpired:
+        data = jwt.decode(
+            token,
+            os.getenv('SECRET_KEY'),
+            leeway=datetime.timedelta(seconds=10),
+            algorithms=["HS256"]
+        )
+    except Exception as e:
+        print(e)
         logging.warning('signature expired')
-        return None    # valid token, but expired
-    except BadSignature:
-        logging.warning('bad signature')
-        return None    # invalid token
-    user = User.query.get(data['id'])
+        return None
+    user = User.query.get(data.get('id'))
     return user
 
 
