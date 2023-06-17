@@ -2,7 +2,7 @@ from . import db
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from flask_login import UserMixin, LoginManager
 from itsdangerous import (
-    TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
+    URLSafeTimedSerializer as Serializer, BadSignature, SignatureExpired)
 from sqlalchemy.sql import func
 import logging
 import os
