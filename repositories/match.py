@@ -10,16 +10,16 @@ class MatchRepository:
 
         for function in functions:
             submissions = SubmissionRepository.get_matched_for_function(
-                function['id'])
+                function.id)
             for submission in submissions:
                 matches.append({
-                    'name': function['name'],
-                    'function': function['id'],
+                    'name': function.name,
+                    'function': function.id,
                     'owner': submission.owner,
                     'submission': submission.id,
                     'time_created': submission.time_created,
-                    'size': function['size'],
-                    'file': function['file']
+                    'size': function.size,
+                    'file': function.file
                 })
 
         return matches
