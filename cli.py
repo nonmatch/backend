@@ -6,6 +6,7 @@ from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 from sqlalchemy.sql.expression import desc
 from subprocess import check_call
+from tools.fakeness_score import calculate_fakeness_score
 from tools.find_nonmatching import extract_USA_asm, get_code, get_symbols, update_nonmatching_functions
 import click
 import os
@@ -196,5 +197,27 @@ def create_cli(app):
             sys.exit(1)
         function.is_fakematch = True
         function.is_submitted = False
+        function.deleted = False
         db.session.commit()
         print('done')
+        
+    @app.cli.command('calculate-fakeness-scores')
+    @click.argument('func')
+    def calculate_fakeness_scores(func):
+        function = FunctionRepository.get_by_name_internal(func)
+        if function is None:
+            print(f'Function {func} not found')
+            sys.exit(1)
+
+        best_fakeness_score = function.best_fakeness_score
+        submissions = SubmissionRepository.get_for_function(function.id)
+        for submission_small in submissions:
+            submission = SubmissionRepository.get(submission_small.id)
+            submission.fakeness_score = calculate_fakeness_score(submission.code)
+            if submission.fakeness_score < best_fakeness_score:
+                best_fakeness_score = submission.fakeness_score
+            print(f'{submission.id}: {submission.fakeness_score}')
+        function.best_fakeness_score = best_fakeness_score
+        db.session.commit()
+        print('done')
+        
