@@ -199,6 +199,8 @@ def create_cli(app):
         function.is_submitted = False
         function.deleted = False
         db.session.commit()
+        print('calculating fakeness scores...')
+        calc_fakeness_scores(function)
         print('done')
         
     @app.cli.command('calculate-fakeness-scores')
@@ -208,7 +210,10 @@ def create_cli(app):
         if function is None:
             print(f'Function {func} not found')
             sys.exit(1)
-
+        calc_fakeness_scores(function)
+        print('done')
+        
+    def calc_fakeness_scores(function):
         best_fakeness_score = 999999
         submissions = SubmissionRepository.get_for_function(function.id)
         for submission_small in submissions:
@@ -219,5 +224,44 @@ def create_cli(app):
             print(f'{submission.id}: {submission.fakeness_score}')
         function.best_fakeness_score = best_fakeness_score
         db.session.commit()
-        print('done')
+
+    @app.cli.command('add-fakematch')
+    @click.argument('func')
+    @click.argument('file')
+    def add_fakematch(func, file):
+        function = FunctionRepository.get_by_name_internal(func)
+        if function is not None:
+            print(f'Function {func} already exists')
+            sys.exit(1)
         
+        symbols = get_symbols()
+        symbol = symbols.find_symbol_by_name(func)
+        if symbol is None:
+            print(f'No symbol found for {func}, maybe static?')
+            sys.exit(1)
+        
+        print(f'Address: {hex(symbol.address)}')
+        same_address_function = FunctionRepository.get_by_addr_internal(symbol.address)
+        if same_address_function is not None:
+            print(f'Function already exists as {same_address_function.name}')
+            sys.exit(1)
+
+        print('Enter asm (Stop with Ctrl+D):')
+        asm = []
+        while True:
+            try:
+                line = input()
+            except EOFError:
+                break
+            asm.append(line)
+        res = requests.post(current_app.config['PYCAT_URL'], '\n'.join(asm))
+        asm = res.text.rstrip()
+        if asm.startswith('#'):
+            # Remove Compiler Explorer comment
+            asm = asm.split('\n', 1)[1]
+
+
+        function = Function(name=func, file=file, size=symbol.length, addr=symbol.address, asm=asm, is_fakematch=True, deleted=False)
+        db.session.add(function)
+        db.session.commit()
+        print('done')

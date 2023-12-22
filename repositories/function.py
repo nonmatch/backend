@@ -155,6 +155,10 @@ class FunctionRepository:
         return Function.query.filter_by(name=name).first()
 
     @staticmethod
+    def get_by_addr_internal(addr: int) -> Optional[Function]:
+        return Function.query.filter_by(addr=addr).first()
+
+    @staticmethod
     def set_decomp_me_scratch(function: Function, decomp_me_slug: str):
         function.decomp_me_scratch = decomp_me_slug
         db.session.commit()

@@ -13,10 +13,10 @@ services:
       POSTGRES_USER: octorock
       POSTGRES_DB: nonmatch
       POSTGRES_PASSWORD: postgres
-      FLASK_ENV: development
-      ENV: development
+      TMC_REPO: /opt/tmc
     volumes:
       - .:/opt/backend
+      - ../tmc:/opt/tmc
   
   postgres:
     image: postgres:16-alpine
