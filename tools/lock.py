@@ -8,7 +8,7 @@ def execute(session, lock_fn, lock_id, scope):
     """
     Executes the lock function
     """
-    return session.execute(select([lock_fn(lock_id, scope)])).scalar()
+    return session.execute(select(lock_fn(lock_id, scope))).scalar()
 
 
 def obtain_lock(session, lock_id, scope):
