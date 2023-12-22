@@ -31,6 +31,5 @@ fakeness_scoring_rules = [
 def calculate_fakeness_score(code: str):
     fakeness_score = 0
     for rule in fakeness_scoring_rules:
-        for match in re.findall(rule['regex'], code):
-            fakeness_score += rule['score']
+        fakeness_score += rule['score'] * len(re.findall(rule['regex'], code))
     return fakeness_score

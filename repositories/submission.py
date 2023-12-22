@@ -10,7 +10,7 @@ import logging
 
 class SubmissionRepository:
     @staticmethod
-    def create(function: int, owner: int, code: str, score: int, is_equivalent: bool, parent: int, compiled: str, comments: str) -> dict:
+    def create(function: int, owner: int, code: str, score: int, is_equivalent: bool, parent: int, compiled: str, comments: str, fakeness_score) -> dict:
         '''Create submission'''
         try:
             if parent is not None and int(parent) == 0:
@@ -23,7 +23,8 @@ class SubmissionRepository:
                 is_equivalent=is_equivalent,
                 parent=parent,
                 compiled=compiled,
-                comments=comments
+                comments=comments,
+                fakeness_score=fakeness_score
             )
             db.session.add(submission)
             db.session.commit()
@@ -48,7 +49,7 @@ class SubmissionRepository:
         '''Get all non submitted submissions for a user'''
         valid_functions = Function.query.with_entities(
             Function.id).filter_by(deleted=False, is_submitted=False)
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(owner=user,is_deleted=False).filter(Submission.function.in_(valid_functions)).order_by(desc(Submission.time_created)).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created, Submission.fakeness_score).filter_by(owner=user,is_deleted=False).filter(Submission.function.in_(valid_functions)).order_by(desc(Submission.time_created)).all()
 
     @staticmethod
     def get(id: int) -> Submission:
@@ -56,7 +57,7 @@ class SubmissionRepository:
 
     @staticmethod
     def get_latest() -> List[Submission]:
-        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created).filter_by(is_deleted=False).order_by(desc(Submission.time_created)).limit(20).all()
+        return Submission.query.with_entities(Submission.id, Submission.function, Submission.is_equivalent, Submission.score, Submission.owner, Submission.time_created, Submission.fakeness_score).filter_by(is_deleted=False).order_by(desc(Submission.time_created)).limit(20).all()
 
     @staticmethod
     def delete(subm: Submission) -> None:

@@ -209,12 +209,12 @@ def create_cli(app):
             print(f'Function {func} not found')
             sys.exit(1)
 
-        best_fakeness_score = function.best_fakeness_score
+        best_fakeness_score = 999999
         submissions = SubmissionRepository.get_for_function(function.id)
         for submission_small in submissions:
             submission = SubmissionRepository.get(submission_small.id)
             submission.fakeness_score = calculate_fakeness_score(submission.code)
-            if submission.fakeness_score < best_fakeness_score:
+            if submission.score == 0 and submission.fakeness_score < best_fakeness_score:
                 best_fakeness_score = submission.fakeness_score
             print(f'{submission.id}: {submission.fakeness_score}')
         function.best_fakeness_score = best_fakeness_score

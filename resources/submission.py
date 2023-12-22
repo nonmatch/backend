@@ -8,6 +8,7 @@ from repositories.function import FunctionRepository
 from repositories.submission import SubmissionRepository
 from repositories.user import UserRepository
 from schemas.submission import SubmissionSchema
+from tools.fakeness_score import calculate_fakeness_score
 from tools.find_nonmatching import calculate_score
 from utils import error_message_response, error_response
 import json
@@ -81,8 +82,12 @@ class FunctionSubmissions(Resource):
             if not func.has_code_try:
                 func.has_code_try = True
 
+            fakeness_score = calculate_fakeness_score(data['code'])
+            if score == 0 and fakeness_score < func.best_fakeness_score:
+                func.best_fakeness_score = fakeness_score
+
             submission = SubmissionRepository.create(
-                function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'], data['comments'])
+                function, owner, data['code'], score, data['is_equivalent'], data['parent'], data['compiled'], data['comments'], fakeness_score)
             FunctionRepository.set_has_equivalent_try(function, SubmissionRepository.has_equivalent_submission(function))
             return submission, 200
         except Exception as e:
