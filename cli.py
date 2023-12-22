@@ -196,7 +196,6 @@ def create_cli(app):
             print(f'Function {func} not found')
             sys.exit(1)
         function.is_fakematch = True
-        function.is_submitted = False
         function.deleted = False
         db.session.commit()
         print('calculating fakeness scores...')
@@ -249,9 +248,8 @@ def create_cli(app):
             same_address_function.name = func
             same_address_function.file = file
             same_address_function.is_fakematch = True
-            same_address_function.is_submitted = False
             same_address_function.deleted = False
-            db.session.commit()
+            calc_fakeness_scores(same_address_function)
             sys.exit(1)
 
         print('Enter asm (Stop with Ctrl+D):')
