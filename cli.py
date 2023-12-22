@@ -243,7 +243,15 @@ def create_cli(app):
         print(f'Address: {hex(symbol.address)}')
         same_address_function = FunctionRepository.get_by_addr_internal(symbol.address)
         if same_address_function is not None:
-            print(f'Function already exists as {same_address_function.name}')
+            print(f'Function already exists as {same_address_function.name} in {same_address_function.file}. Rename?')
+            input()
+            same_address_function.asm = same_address_function.asm.replace(same_address_function.name, func)
+            same_address_function.name = func
+            same_address_function.file = file
+            same_address_function.is_fakematch = True
+            same_address_function.is_submitted = False
+            same_address_function.deleted = False
+            db.session.commit()
             sys.exit(1)
 
         print('Enter asm (Stop with Ctrl+D):')

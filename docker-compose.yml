@@ -16,7 +16,7 @@ services:
       TMC_REPO: /opt/tmc
     volumes:
       - .:/opt/backend
-      - ../tmc:/opt/tmc
+      - ../tmc-backend:/opt/tmc
   
   postgres:
     image: postgres:16-alpine

@@ -9,7 +9,7 @@ fakeness_scoring_rules = [
     {
         'regex': 'FORCE_REGISTER',
         'score': 5,
-        'description': 'ORCE_REGISTER to force register allocation'
+        'description': 'FORCE_REGISTER to force register allocation'
     },
     {
         'regex': 'MEMORY_BARRIER',
