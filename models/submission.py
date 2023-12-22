@@ -19,3 +19,4 @@ class Submission(db.Model):
     comments = db.Column(db.Text)
     is_deleted = db.Column(
         db.Boolean, server_default=expression.false(), nullable=False)
+    fakeness_score = db.Column(db.Integer, server_default=expression.text('-1'))

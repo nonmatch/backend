@@ -12,7 +12,7 @@ function_schema = FunctionSchema()
 
 class FunctionList(Resource):
     def get(self):
-        functions = FunctionRepository.get_nonmatch()
+        functions = FunctionRepository.get_fakematch()
         return functions_schema.dump(functions), 200
 
 class AllFunctionList(Resource):

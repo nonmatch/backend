@@ -34,3 +34,7 @@ class Function(db.Model):
     # Has a submission that is equivalent
     has_equivalent_try = db.Column(
         db.Boolean, server_default=expression.false(), nullable=False)
+    # Fake matches
+    is_fakematch = db.Column(db.Boolean, server_default=expression.false(), nullable=False)
+    best_fakeness_score = db.Column(db.Integer, server_default=expression.text('99999'))
+    

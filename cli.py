@@ -55,7 +55,7 @@ def create_cli(app):
         check_call(['git', 'rebase', 'master'], cwd=TMC_REPO)
         check_call(['make', '-j'], cwd=TMC_REPO)
 
-        update_nonmatching_functions()
+        #update_nonmatching_functions()
         print('done')
 
     def fail_cron():
@@ -184,5 +184,17 @@ def create_cli(app):
                 # Cannot delete submission which has children.
                 if db.session.query(Submission.id).filter_by(parent=submission.id).first() is None:
                     db.session.delete(submission)
+        db.session.commit()
+        print('done')
+
+    @app.cli.command('set-fakematch')
+    @click.argument('func')
+    def set_fakematch(func):
+        function = FunctionRepository.get_by_name_internal(func)
+        if function is None:
+            print(f'Function {func} not found')
+            sys.exit(1)
+        function.is_fakematch = True
+        function.is_submitted = False
         db.session.commit()
         print('done')

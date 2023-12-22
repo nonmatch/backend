@@ -14,8 +14,10 @@ public_fields = (
     Function.decomp_me_scratch,
     Function.decomp_me_matched,
     Function.locked_by,
-    Function.is_asm_func,
-    Function.has_equivalent_try
+    #Function.is_asm_func,
+    #Function.has_equivalent_try,
+    Function.is_fakematch,
+    Function.best_fakeness_score
 )
 
 public_fields_single = (
@@ -57,7 +59,7 @@ class FunctionRepository:
     @staticmethod
     def get_all() -> List[Function]:
         return Function.query.filter_by(
-            deleted=False, is_matched=False, is_submitted=False
+            deleted=False, is_fakematch=True
         ).with_entities(
             *public_fields,
             # Necessary for stats:
