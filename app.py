@@ -15,6 +15,7 @@ from models.user import generate_auth_token, login_manager
 from oauth import github_blueprint
 from resources.audit import AuditResource
 from resources.cexplore import CompileResource, PycatResource
+from resources.comment import CommentResource, FunctionCommentsResource, ShortCommentsResource
 from resources.function import AllFunctionList, AsmFunctionList, EquivalentFunctionList, FunctionDecompMeResource, FunctionHeadersResource, FunctionList, FunctionLockResource, FunctionResource, FunctionSearchResource, FunctionStatsList, FunctionUnlockResource, NonEquivalentFunctionList, WithCodeFunctionList, WithoutCodeFunctionList
 from resources.login import LoginResource, LogoutResource
 from resources.match import MatchResource
@@ -125,15 +126,18 @@ api.add_resource(FunctionHeadersResource, '/functions/<function>/headers')
 api.add_resource(FunctionDecompMeResource, '/functions/<function>/decompMe')
 api.add_resource(FunctionLockResource, '/functions/<function>/lock')
 api.add_resource(FunctionUnlockResource, '/functions/<function>/unlock')
+api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
+api.add_resource(FunctionCommentsResource, '/functions/<function>/comments')
 api.add_resource(LatestSubmissionsResource, '/submissions')
 api.add_resource(SubmissionResource, '/submissions/<submission>')
 api.add_resource(EquivalentResource, '/submissions/<submission>/equivalent')
+api.add_resource(CommentResource, '/comments/<comment>')
+api.add_resource(ShortCommentsResource, '/short_comments')
 api.add_resource(UserResource, '/users/<id>')
 api.add_resource(CurrentUserResource, '/user')
 api.add_resource(DashboardResource, '/user/functions')
 api.add_resource(LoginResource, '/oauth/login')
 api.add_resource(LogoutResource, '/oauth/logout')
-api.add_resource(FunctionSubmissions, '/functions/<function>/submissions')
 api.add_resource(MatchResource, '/matches')
 #api.add_resource(PrResource, '/pr')
 #api.add_resource(PrStatusResource, '/pr/<id>')

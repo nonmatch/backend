@@ -12,7 +12,7 @@ function_schema = FunctionSchema()
 
 class FunctionList(Resource):
     def get(self):
-        functions = FunctionRepository.get_fakematch()
+        functions = FunctionRepository.get_nonmatch()
         return functions_schema.dump(functions), 200
 
 class AllFunctionList(Resource):
@@ -54,7 +54,7 @@ class NonEquivalentFunctionList(Resource):
 
 class FunctionResource(Resource):
     def get(self, function):
-        return function_schema.dump(FunctionRepository.get(function))
+        return function_schema.dump(FunctionRepository.get(int(function)))
 
 class FunctionHeadersResource(Resource):
     def get(self, function):

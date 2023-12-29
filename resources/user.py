@@ -18,7 +18,7 @@ class User(Resource):
 
 class UserResource(Resource):
     def get(self, id: str):
-        return user_schema.dump(UserRepository.get(id))
+        return user_schema.dump(UserRepository.get(int(id)))
 
     def put(self, id: str):
         json = request.get_json(silent=True)
